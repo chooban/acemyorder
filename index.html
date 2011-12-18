@@ -13,8 +13,10 @@
 		@import "datatables/media/css/demo_page.css";
 		@import "datatables/media/css/demo_table_jui.css";
 		@import "acestyle.css";
+		@import "css/ui-lightness/jquery-ui-1.8.16.custom.css";
 	</style>
 	<script type="text/javascript" src="jquery-1.7.1.min.js"></script>
+	<script type="text/javascript" src="jquery-ui-1.8.16.custom.min.js"></script>
 	<script type="text/javascript" language="javascript" src="datatables/media/js/jquery.dataTables.min.js"></script>
 	<script type="text/javascript">
 	
@@ -188,13 +190,12 @@
 				"bRetrieve": true,
 			} );
 			var aData = table.fnGetData( iRow );
-			var price = parseFloat( /&pound;(.*)/.exec( aData[2] )[1] );
+			var price = parseFloat( /&pound;(.*)/.exec( aData[2] )[1] ) * 100;
 						
-			var tmp = parseFloat( totalValue ) + price;
+			totalValue += price;
 			totalItems++;
 			
-			totalValue = tmp.toFixed( 2 );
-			$("#runningtotal").html( "&pound;" + totalValue );
+			$("#runningtotal").html( "&pound;" + (totalValue/100).toFixed( 2 ) );
 			$("#numitems").html( totalItems );
 		}
 		
@@ -203,13 +204,12 @@
 				"bRetrieve": true,
 			} );
 			var aData = table.fnGetData( iRow );
-			var price = parseFloat( /&pound;(.*)/.exec( aData[2] )[1] );
+			var price = parseFloat( /&pound;(.*)/.exec( aData[2] )[1] ) * 100;
 			
-			var tmp = parseFloat( totalValue ) - price;
+			totalValue -= price;
 			totalItems--;
 			
-			totalValue = tmp.toFixed( 2 );
-			$("#runningtotal").html( "&pound;" + totalValue );
+			$("#runningtotal").html( "&pound;" + (totalValue/100).toFixed( 2 ) );
 			$("#numitems").html( totalItems );
 		}
 		
@@ -268,27 +268,35 @@
 					elem.addClass( "addtoorder" );
 				}
 			});
+			
+			$('#showorder').click( function( event ) {
+				$('#dialogcontents').dialog( { "modal" : true } );
+			} );
 		} );
+		
 	</script>
 </head>
 <body>
 
 	<div class="container">
-		<div class="span-18">Logo goes here</div>
+		<div class="span-8"><img src="images/acelogo.jpg"/></div>
 		
-		<div class="span-6 last">
-			<span id="runningtotal">£0</span><br/>
-			<span id="numitems">0</span>
-		</div>
-		
-		<div class="span-24">
+		<div class="span-16 last">It's really easy; just select a file, hit go, add things to your order, his "Show Order", check it and then save it.</div>
+
+		<div class="span-20">
 			<div class="filepicker">
 				<form id="filepickerform">
 					<select id="fileselect"></select>
 					<input type="button" value="Go!" id="manualrender" onclick="$('#fileselect').change()"/>
 				</form>
 			</div>
-		</div>	
+		</div>			
+		
+		<div class="span-4 last">
+			<b>Total : </b> <span id="runningtotal">£0</span><br/>
+			<b>Items : </b> <span id="numitems">0</span><br/>
+			<input id="showorder" type="button" value="Show Order" />
+		</div>
 		
 		<div class="span-24">
 			<div class="tablearea">
@@ -316,5 +324,6 @@
 		</div>
 	</div>
 
+	<div id="dialogcontents">Contents for a modal dialog</div>
 </body>
 </html>
