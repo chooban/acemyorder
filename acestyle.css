@@ -1,0 +1,28 @@
+.container {
+	margin-left: auto;
+	margin-right: auto;	
+}
+
+.publisher {
+	text-transform: capitalize;
+}
+
+#tablearea {
+	width: 95%;	
+}
+
+img.addtoorder {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	height: 80%;
+	cursor: pointer;
+}
+
+img.deletefromorder {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	height: 80%;
+	cursor: pointer;
+}

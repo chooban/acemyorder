@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Ace Comics Order Helper</title>
+	<link rel="stylesheet" href="css/blueprint/screen.css" type="text/css" media="screen, projection">
+	<link rel="stylesheet" href="css/blueprint/print.css" type="text/css" media="print">
+	<!--[if lt IE 8]>
+  		<link rel="stylesheet" href="css/blueprint/ie.css" type="text/css" media="screen, projection">
+	<![endif]-->
+	<style type="text/css" title="currentStyle">
+		@import "datatables/media/css/demo_page.css";
+		@import "datatables/media/css/demo_table_jui.css";
+		@import "acestyle.css";
+	</style>
+	<script type="text/javascript" src="jquery-1.7.1.min.js"></script>
+	<script type="text/javascript" language="javascript" src="datatables/media/js/jquery.dataTables.min.js"></script>
+	<script type="text/javascript">
+	
+		var csvdata;
+		var totalValue = 0.00
+		var totalItems = 0;
+		var rePrice = /(\d+(\.\d\d)?)/;
+		
+		jQuery.extend({
+	    csv: function(delim, quote, linedelim) {
+	        delim = typeof delim == "string" ? new RegExp( "[" + (delim || ","   ) + "]" ) : typeof delim == "undefined" ? ","    : delim;
+	        quote = typeof quote == "string" ? new RegExp("^[" + (quote || '"'   ) + "]" ) : typeof quote == "undefined" ? '"'    : quote;
+	        lined = typeof lined == "string" ? new RegExp( "[" + (lined || "\r\n") + "]+") : typeof lined == "undefined" ? "\r\n" : lined;
+	
+	        function splitline (v) {
+	            // Split the line using the delimitor
+	            var arr  = v.split(delim),
+	                out = [], q;
+	            for (var i=0, l=arr.length; i<l; i++) {
+	                if (q = arr[i].match(quote)) {
+	                    for (j=i; j<l; j++) {
+	                        if (arr[j].charAt(arr[j].length-1) == q[0]) { break; }
+	                    }
+	                    var s = arr.slice(i,j+1).join(delim);
+	                    out.push(s.substr(1,s.length-2));
+	                    i = j;
+	                }
+	                else { out.push(arr[i]); }
+	            }
+	
+	            return out;
+	        }
+	
+	        return function(text) {
+	            var lines = text.split(lined);
+	            for (var i=0, l=lines.length; i<l; i++) {
+	                lines[i] = splitline(lines[i]);
+	            }
+	            return lines;
+	        };
+	    }
+		});
+		
+		function stringToBytes ( str ) {
+		  var ch, st, re = [];
+		  for (var i = 0; i < str.length; i++ ) {
+		    ch = str.charCodeAt(i);  // get char 
+		    st = [];                 // set up "stack"
+		    do {
+		      st.push( ch & 0xFF );  // push byte to stack
+		      ch = ch >> 8;          // shift value down by 1 byte
+		    }  
+		    while ( ch );
+		    // add stack contents to result
+		    // done because chars have "wrong" endianness
+		    re = re.concat( st.reverse() );
+		  }
+		  // return an array of bytes
+		  return re;
+		}
+		
+		function csv2datatable( sURL ) {
+			$.ajax( 
+				{ 
+					url : sURL,
+					scriptCharset : "UTF-8",
+					type : "GET",
+					dataType : "text",
+					success : function( data, textStatus, jqXHR ) {
+						csvdata = jQuery.csv()( data );						
+						csvdata.pop();
+						
+						var row;
+						var was;					
+						var match;
+						
+						for ( var i = 0; i < csvdata.length; i++ ) {
+							row = new Array();
+							
+							// Previews code
+							row[0] = csvdata[i][0];
+							
+							// Title
+							row[1] = csvdata[i][1];
+							
+							// Price
+							if ( csvdata[i][3] != null ) {
+								row[2] = parseFloat( csvdata[i][3] );
+							} 
+							else {
+								row[2] = "";							
+							}						
+							
+							// Reduced from
+							was = csvdata[i][5];						
+							if ( was.length > 0 ) {
+								//$("span#testspan").text( $("span#testspan").text() + "<br/>" + stringToBytes( was ) ); 
+								
+								match = rePrice.exec( was );
+								row[3] = match[1];
+							}
+							else {
+								row[3] = "";
+							}						
+
+							// Publisher
+							row[4] = csvdata[i][6].toLowerCase();
+							
+							// What'll be the button
+							row[5] = "";
+							csvdata[i] = row;
+						}
+						
+						$("table#datatable").dataTable( { 
+								"aaData": csvdata,
+								"iDisplayLength" : 30,
+								"bAutoWidth" : false,
+								"bDestroy" : true,
+								"bRetrieve" : true,
+								"aoColumnDefs" : [
+									{ 
+										"aTargets" : [ "description" ],
+										"sWidth" : "50%",
+									},
+									{
+										"aTargets": [ "publisher" ],
+										"sWidth" : "20%",
+										"sClass" : "publisher",								
+									},
+									{
+										"aTargets": [ "price", "reduced", "previews", "buttoncol" ],
+										"sWidth" : "5%",
+									},
+									{
+										"aTargets" : [ "price", "reduced", "buttoncol" ],
+										"bSortable" : false,
+									},
+									{
+										"aTargets" : [ "price" ],
+										"fnRender" : function( oObj ) {
+											return "&pound;" + oObj.aData[2];
+										},
+									},
+									{
+										"aTargets" : [ "reduced" ],
+										"fnRender" : function( oObj ) {
+											return ( oObj.aData[3] != "" ? "&pound;" + oObj.aData[3] : "" );
+										},
+									},
+									{
+										"aTargets" : [ "buttoncol" ],
+										"fnRender" : function( oObj ) {
+											return "<img id=\"row" + oObj.iDataRow + "\" class=\"addtoorder\" src=\"icons/add.png\" alt=\"Add to order\"/>";											
+										},
+										"sClass" : "buttoncol",
+									}
+								],
+								
+							} 
+						);
+					},
+					error : function( jqXHR, textStatus, errorThrown ) {
+						alert( errorThrown );
+					}
+				} 
+			);
+		}
+		
+		function addToOrder( iRow ) {
+			var table = $("table#datatable").dataTable( {
+				"bRetrieve": true,
+			} );
+			var aData = table.fnGetData( iRow );
+			var price = parseFloat( /&pound;(.*)/.exec( aData[2] )[1] );
+						
+			var tmp = parseFloat( totalValue ) + price;
+			totalItems++;
+			
+			totalValue = tmp.toFixed( 2 );
+			$("#runningtotal").html( "&pound;" + totalValue );
+			$("#numitems").html( totalItems );
+		}
+		
+		function deleteFromOrder( iRow ) {
+			var table = $("table#datatable").dataTable( {
+				"bRetrieve": true,
+			} );
+			var aData = table.fnGetData( iRow );
+			var price = parseFloat( /&pound;(.*)/.exec( aData[2] )[1] );
+			
+			var tmp = parseFloat( totalValue ) - price;
+			totalItems--;
+			
+			totalValue = tmp.toFixed( 2 );
+			$("#runningtotal").html( "&pound;" + totalValue );
+			$("#numitems").html( totalItems );
+		}
+		
+		$(document).ready( function() {
+			$("#runningtotal").html( "&pound;" + totalValue );
+			$("#numitems").html( totalItems );
+			
+			$("#fileselect").change( function() {
+				$("select#fileselect option:selected").each(function () {
+                csv2datatable( "/~ross/ace/csv/" + $(this).text() );
+              });
+			} );
+			
+			// Get the list of possible CSV files
+			$.ajax( 
+				{
+					url: "csvfilter.php",
+					dataType : "json",
+					success : function( data, textstatus, jqXHR ) {
+						//Right, now make a dropdown out of the options						
+						var files = data['files'];
+						for ( var i = 0; i < files.length; i++ ) {
+							$("#fileselect").append( "<option>" + files[i] + "</option>" );
+						}
+					}
+				}
+			);
+			
+			$('table#datatable').click( function(event) {
+				if ( $(event.target).is( 'img.addtoorder' ) ) {
+					// We're on the case
+					event.stopPropagation();
+					
+					var elem = $( "#" + event.target.id );
+					
+					// Add the row to the order. The id is "row(number)"
+					addToOrder( /row(\d+)/.exec( event.target.id )[1] );
+					
+					// Make it a delete symbol
+					event.target.src = "icons/remove.png";
+					
+					// Change the class
+					elem.removeClass( "addtoorder" );
+					elem.addClass( "deletefromorder" );
+				}
+				else if ( $(event.target).is( 'img.deletefromorder' ) ) {
+					event.stopPropagation();
+					
+					deleteFromOrder( /row(\d+)/.exec( event.target.id )[1] );
+					
+					event.target.src = "icons/add.png";
+					
+					// Change the class
+					var elem = $( "#" + event.target.id );
+					elem.removeClass( "deletefromorder" );
+					elem.addClass( "addtoorder" );
+				}
+			});
+		} );
+	</script>
+</head>
+<body>
+
+	<div class="container">
+		<div class="span-18">Logo goes here</div>
+		
+		<div class="span-6 last">
+			<span id="runningtotal">£0</span><br/>
+			<span id="numitems">0</span>
+		</div>
+		
+		<div class="span-24">
+			<div class="filepicker">
+				<form id="filepickerform">
+					<select id="fileselect"></select>
+					<input type="button" value="Go!" id="manualrender" onclick="$('#fileselect').change()"/>
+				</form>
+			</div>
+		</div>	
+		
+		<div class="span-24">
+			<div class="tablearea">
+				<table id="datatable">
+					<thead>
+						<th class="previews">Previews Code</th>
+						<th class="description">Description</th>
+						<th class="price">Price</th>
+						<th class="reduced">Was</th>
+						<th class="publisher">Publisher</th>
+						<th class="buttoncol">Add</th>
+					</thead>
+					<tbody>
+						<tr>
+							<td colspan="5" style="text-align:center">Please choose a file to view.</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>		
+		</div>
+		
+		<div class="span-24" id="footer">
+			<p>Icons from <a href="http://emey87.deviantart.com/">emey87</a></p>
+			<p>Datatable plugin from <a href="http://datatables.net/">the internet</a></p>
+		</div>
+	</div>
+
+</body>
+</html>
