@@ -1,0 +1,38 @@
+{#param name=total value=0}
+
+<table summary="Completed order" >
+	<thead id="orderhead">
+		<tr>
+			<th>Previews ID</th>
+			<th>Title</th>
+			<th>Price</th>
+			<th>Publisher</th>
+		</tr>
+	</thead>
+	
+	<tbody id="orderbody">
+		{#foreach $T as row}
+			{#param name=total value=$P.total + ( $T.row.price * 100 )}
+			<tr>
+				<td>{$T.row.previews}</td>
+				<td>{$T.row.title}</td>
+				<td>{$T.row.price}</td>
+				<td>{$T.row.publisher}</td>	
+			<tr>
+		{#/for}
+	</tbody>
+	
+	<tfoot id="orderfoot">
+		<tr>
+			<td colspan="1">&nbsp;</td>
+			<td colspan="1"><b>Total</b></td>
+			<td colspan="1" id="ordertotal">{$P.total / 100}</td>
+			<td></td>
+		</tr>
+	</tfoot>
+</table>
+
+<form id="exportorder" action="export.php" method="post" target="_blank">
+	<input type="hidden" name="encodeddata" id="encodeddata" value=""/>
+	<input type="submit" />
+</form>
