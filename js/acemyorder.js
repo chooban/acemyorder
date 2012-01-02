@@ -1,7 +1,6 @@
 var csvdata;
 var rePrice = /(\d+(\.\d\d)?)/;
 var totalValue = 0;
-var totalItems = 0;
 // Holds row numbers
 var order = [];
 
@@ -315,12 +314,11 @@ function addToOrder( iRow ) {
 	var price = parseFloat( /&pound;(.*)/.exec( aData[2] )[1] ) * 100;
 				
 	totalValue += price;
-	totalItems++;
 	
 	order.push( iRow );
 	
 	$("#runningtotal").html( "&pound;" + (totalValue/100).toFixed( 2 ) );
-	$("#numitems").html( totalItems );
+	$("#numitems").html( order.length );
 }
 
 function deleteFromOrder( iRow ) {
@@ -331,25 +329,32 @@ function deleteFromOrder( iRow ) {
 	var price = parseFloat( /&pound;(.*)/.exec( aData[2] )[1] ) * 100;
 	
 	totalValue -= price;
-	totalItems--;
+	
+	var idx = order.indexOf( iRow );
+	order.splice( idx, 1 );
 	
 	$("#runningtotal").html( "&pound;" + (totalValue/100).toFixed( 2 ) );
-	$("#numitems").html( totalItems );
+	$("#numitems").html( order.length );
+}
+
+function insertionSort( arr ) {
+	for(var j = 1; j < arr.length; j++) {
+		var key = arr[j];
+		var i = j - 1;
+	 
+		while(i >= 0 && arr[i] > key) {
+			arr[i+1] = arr[i];
+			i = i - 1;
+		}
+	 
+		arr[i+1] = key;
+	}	
+	return arr;
 }
 
 function calculateOrder() {
 	// Iterate through order and build up the array
-	for(var j = 1; j < order.length; j++) {
-		var key = order[j];
-		var i = j - 1;
-	 
-		while(i >= 0 && order[i] > key) {
-			order[i+1] = order[i];
-			i = i - 1;
-		}
-	 
-		order[i+1] = key;
-	}
+	order = insertionSort( order );
 	
 	var table = $("table#datatable").dataTable( {
 		"bRetrieve": true,
@@ -389,7 +394,7 @@ function calculateOrder() {
 
 $(document).ready( function() {
 	$("#runningtotal").html( "&pound;" + totalValue );
-	$("#numitems").html( totalItems );
+	$("#numitems").html( order.length );
 	
 	$("#fileselect").change( function() {
 		$("select#fileselect option:selected").each(function () {
