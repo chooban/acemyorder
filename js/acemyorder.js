@@ -398,7 +398,7 @@ $(document).ready( function() {
 	
 	$("#fileselect").change( function() {
 		$("select#fileselect option:selected").each(function () {
-          csv2datatable( "/~ross/ace/csv/" + $(this).text() );
+          csv2datatable( "csv/" + $(this).text() );
         });
 	} );
 	
