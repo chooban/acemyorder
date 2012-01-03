@@ -213,6 +213,7 @@ function csv2datatable( sURL ) {
 				var row;
 				var was;					
 				var match;
+				var buttonColTemplate = $.createTemplate( '<img id="row{$T.rowId}" class="addtoorder" src="icons/add.png" alt="Add to order"/>' );
 				
 				for ( var i = 0; i < csvdata.length; i++ ) {
 					row = new Array();
@@ -234,8 +235,6 @@ function csv2datatable( sURL ) {
 					// Reduced from
 					was = csvdata[i][5];						
 					if ( was.length > 0 ) {
-						//$("span#testspan").text( $("span#testspan").text() + "<br/>" + stringToBytes( was ) ); 
-						
 						match = rePrice.exec( was );
 						row[3] = match[1];
 					}
@@ -290,7 +289,7 @@ function csv2datatable( sURL ) {
 							{
 								"aTargets" : [ "buttoncol" ],
 								"fnRender" : function( oObj ) {
-									return "<img id=\"row" + oObj.iDataRow + "\" class=\"addtoorder\" src=\"icons/add.png\" alt=\"Add to order\"/>";											
+									return $.processTemplateToText( buttonColTemplate, { rowId : oObj.iDataRow } ); 										
 								},
 								"sClass" : "buttoncol",
 							}
