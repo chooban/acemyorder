@@ -207,7 +207,9 @@ function csv2datatable( sURL ) {
 			type : "GET",
 			dataType : "text",
 			success : function( data, textStatus, jqXHR ) {
-				csvdata = jQuery.csv()( data );						
+				csvdata = jQuery.csv()( data );
+				
+				// The first row's not useful					
 				csvdata.pop();
 				
 				var row;
@@ -245,8 +247,10 @@ function csv2datatable( sURL ) {
 					// Publisher
 					row[4] = csvdata[i][6].toLowerCase();
 					
-					// What'll be the button
+					// What will eventually be the button
 					row[5] = "";
+					
+					// Now overwrite the row in the array
 					csvdata[i] = row;
 				}
 				
@@ -255,7 +259,6 @@ function csv2datatable( sURL ) {
 						"iDisplayLength" : 30,
 						"bAutoWidth" : false,
 						"bDestroy" : true,
-						"bRetrieve" : true,
 						"aoColumnDefs" : [
 							{ 
 								"aTargets" : [ "description" ],
@@ -395,7 +398,7 @@ $(document).ready( function() {
 	$("#runningtotal").html( "&pound;" + totalValue );
 	$("#numitems").html( order.length );
 	
-	$("#fileselect").change( function() {
+	$("#manualrender").click( function() {
 		$("select#fileselect option:selected").each(function () {
           csv2datatable( "csv/" + $(this).text() );
         });
