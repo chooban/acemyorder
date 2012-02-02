@@ -14,34 +14,33 @@
 		@import "datatables/media/css/demo_table_jui.css";
 		@import "acestyle.css";
 		@import "css/ui-lightness/jquery-ui-1.8.16.custom.css";
+		@import "css/ui.spinner.css";
 	</style>
 	<script type="text/javascript" src="jquery-1.7.1.min.js"></script>
 	<script type="text/javascript" src="jquery-ui-1.8.16.custom.min.js"></script>
 	<script type="text/javascript" language="javascript" src="datatables/media/js/jquery.dataTables.min.js"></script>
 	<script type="text/javascript" language="javascript" src="js/jquery-jtemplates.js"></script>
 	<script type="text/javascript" language="javascript" src="js/acemyorder.js"></script>
+	<script type="text/javascript" language="javascript" src="js/ui.spinner.min.js"></script>
 </head>
 <body>
 
 	<div class="container">
 		<div class="span-8"><img src="images/acelogo.jpg"/></div>
 		
-		<div class="span-16 last"><p>It's really easy; just select a file, hit go, add
-		things to your order, his "Show Order", check it and then save it.</p>
-		<p>Let me know if you find the site useful, broken, or anything else! You can contact me via 
-		<a href="mailto:rhendry@googlemail.com">email</a> or over <a href="http://www.twitter.com/choobanicus">Twitter</a>.
-		It is still a work in progress, so if you break something then Don't Panic! Worst case scenario is to hit refresh 
-		and start again.  Then let me know how you broke it so I can fix it.</p>
-		
+		<div class="span-16 last">		
+			<p>If you're wondering how to use this, it's really easy; add things to your order, hit "Show Order", 
+			adjust quantities, check it and then save it.</p>
+
+			<p>Let me know if you find the site useful, broken, or anything else! You can contact me via 
+			<a href="mailto:rhendry@googlemail.com">email</a> or over <a href="http://www.twitter.com/choobanicus">Twitter</a>.
+			It is still a work in progress, so if you break something then Don't Panic! Worst case scenario is to hit refresh 
+			and start again.  Then let me know how you broke it so I can fix it. If you get really, really stuck, there's a link
+			to the csv file itself at the bottom of the page.</p>
 		</div>
 
 		<div class="span-20">
-			<div class="filepicker">
-				<form id="filepickerform">
-					<select id="fileselect"></select>
-					<input type="button" value="Go!" id="manualrender"/>
-				</form>
-			</div>
+			<h2 id="nowdisplaying"></h2>
 		</div>			
 		
 		<div class="span-4 last">
@@ -63,7 +62,7 @@
 					</thead>
 					<tbody>
 						<tr>
-							<td colspan="5" style="text-align:center">Please choose a file to view.</td>
+							<td colspan="5" style="text-align:center"><img src="images/ajax-loader.gif"/></td>
 						</tr>
 					</tbody>
 				</table>
@@ -71,11 +70,14 @@
 		</div>
 		
 		<div class="span-24" id="footer">
-			<p>Icons from <a href="http://emey87.deviantart.com/">emey87</a></p>
-			<p>Datatable plugin from <a href="http://datatables.net/">the internet</a></p>
+			<p>Icons from <a href="http://emey87.deviantart.com/">emey87</a>, datatable plugin from 
+			<a href="http://datatables.net/">the internet</a>, lots of helpful Javascript from <a href="http://www.jquery.com">jQuery</a>.</p>
+			
+			<p><span id="directlink"></span></p>
 		</div>
 	</div>
 
 	<div id="dialogcontents" title="Order Contents">Contents for a modal dialog</div>
+	
 </body>
 </html>

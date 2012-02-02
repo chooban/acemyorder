@@ -1,16 +1,12 @@
 <?php
 	$files = array();	
 	$files['files'] = array();
-	#$files['files'][] = "ecmail440.csv";
-	#$files['files'][] = "ecmail439.csv";
-	#$files['files'][] = "ecmail438.csv";
-	
 	$filenames =  glob( 'csv/ecmail*.csv' ); 
-	arsort( $filenames );
+	asort( $filenames );
 	
-	foreach( $filenames as $filename ) {
-		$files['files'][] = basename( $filename );
-	}
+	# Just the latest one, thanks
+	$files['files'][] = basename( array_pop( $filenames ) );
+	
 	$jsonfiles = json_encode( $files );
 
 	die( $jsonfiles );

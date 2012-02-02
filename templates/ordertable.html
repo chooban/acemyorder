@@ -4,6 +4,7 @@
 	<thead id="orderhead">
 		<tr>
 			<th>Previews ID</th>
+			<th>Quantity</th>
 			<th>Title</th>
 			<th>Price</th>
 			<th>Publisher</th>
@@ -13,8 +14,9 @@
 	<tbody id="orderbody">
 		{#foreach $T as row}
 			{#param name=total value=$P.total + ( $T.row.price * 100 )}
-			<tr>
+			<tr class="orderrow">
 				<td>{$T.row.previews}</td>
+				<td><input type="text" class="spinner" value="1" width="5"/></td>
 				<td>{$T.row.title}</td>
 				<td>{$T.row.price}</td>
 				<td>{$T.row.publisher}</td>	
@@ -24,7 +26,7 @@
 	
 	<tfoot id="orderfoot">
 		<tr>
-			<td colspan="1">&nbsp;</td>
+			<td colspan="2">&nbsp;</td>
 			<td colspan="1"><b>Total</b></td>
 			<td colspan="1" id="ordertotal">{$P.total / 100}</td>
 			<td></td>
@@ -34,5 +36,5 @@
 
 <form id="exportorder" action="export.php" method="post" target="_blank">
 	<input type="hidden" name="encodeddata" id="encodeddata" value=""/>
-	<input type="submit" />
+	<input type="button" value="submit" id="submitorder"/>
 </form>
