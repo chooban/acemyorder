@@ -1,10 +1,6 @@
 var csvdata;
 var rePrice = /(\d+(\.\d\d)?)/;
-var totalValue = 0;
-// Holds row numbers
-var order = [];
 
-// And this will eventually hold proper data
 var orderData = [];
 
 // Nabbed from stack overflow
@@ -333,14 +329,17 @@ function addToOrder( iRow ) {
 		"bRetrieve": true,
 	} );
 	var aData = table.fnGetData( iRow );
-	var price = parseFloat( /&pound;(.*)/.exec( aData[2] )[1] ) * 100;
-				
-	totalValue += price;
+	var price = parseFloat( /&pound;(.*)/.exec( aData[2] )[1] );
 	
-	order.push( iRow );
+	orderData.push( {
+		"previews" : aData[0],
+		"quantity" : 1,
+		"title" : aData[1],
+		"price" : price,
+		"publisher" : aData[4]
+	});
 	
-	$("#runningtotal").html( "&pound;" + (totalValue/100).toFixed( 2 ) );
-	$("#numitems").html( order.length );
+	calculateTotals();
 }
 
 function deleteFromOrder( iRow ) {
@@ -348,22 +347,38 @@ function deleteFromOrder( iRow ) {
 		"bRetrieve": true,
 	} );
 	var aData = table.fnGetData( iRow );
-	var price = parseFloat( /&pound;(.*)/.exec( aData[2] )[1] ) * 100;
+	var idx = findByPreviewsID( orderData, closure, aData[0] );
 	
-	totalValue -= price;
+	if ( idx > -1 ) {
+		orderData.splice( idx, 1 );
+	}
 	
-	var idx = order.indexOf( iRow );
-	order.splice( idx, 1 );
+	calculateTotals();
+}
+
+function calculateTotals() {
+	var totalCost = 0;
+	var numItems = 0;
+	var numTitles = 0;
 	
-	$("#runningtotal").html( "&pound;" + (totalValue/100).toFixed( 2 ) );
-	$("#numitems").html( order.length );
+	var lineData;
+	for ( var i in orderData ) {
+		lineData = orderData[i];
+		numItems += lineData.quantity;
+		numTitles++;
+		totalCost += (lineData.price * 100) * lineData.quantity;
+	}
+	
+	$('#runningtotal').html( "&pound;" + (totalCost/100).toFixed( 2 ) );
+	$('#numitems').html( numItems );
+	$('#numtitles').html( numTitles );
 }
 
 function insertionSort( arr ) {
 	for(var j = 1; j < arr.length; j++) {
 		var key = arr[j];
 		var i = j - 1;
-	 
+
 		while(i >= 0 && arr[i] > key) {
 			arr[i+1] = arr[i];
 			i = i - 1;
@@ -375,38 +390,7 @@ function insertionSort( arr ) {
 }
 
 function calculateOrder() {
-	// Iterate through order and build up the array
-	order = insertionSort( order );
-	
-	var table = $("table#datatable").dataTable( {
-		"bRetrieve": true,
-	} );
-	var tmpOrderData = [];
-	var orderTotal = 0;
-	
-	for ( var i = 0; i < order.length; i++ ) {
-		var aData = table.fnGetData( order[i] );
-		var price = /&pound;(.*)/.exec( aData[2] )[1];
-		
-		tmpOrderData.push( {
-			"previews" : aData[0],
-			"quantity" : 1,
-			"title" : aData[1],
-			"price" : price,
-			"publisher" : aData[4]
-		} );
-		
-		orderTotal += price * 100;
-	}
-	
-	// Look for previously set quantities
-	for ( var i in tmpOrderData ) {
-		var prevOrder = findByPreviewsID( orderData, closure, tmpOrderData[i].previews );
-		if ( prevOrder > -1 ) {
-			tmpOrderData[i].quantity = orderData[prevOrder].quantity;
-		}
-	}
-	orderData = tmpOrderData;		
+
 	$('#dialogcontents').setTemplateURL( 'templates/ordertable.html' );
 	$('#dialogcontents').processTemplate( orderData );
 		
@@ -421,6 +405,7 @@ function calculateOrder() {
 					orderData[i].quantity = quantity;
 				}
 			)
+			calculateTotals();
 			return true;
 		}
 	);
@@ -458,16 +443,11 @@ function calculateOrder() {
 }
 
 $(document).ready( function() {
-	$("#runningtotal").html( "&pound;" + totalValue );
-	$("#numitems").html( order.length );
-	
-	// Get the list of possible CSV files
 	$.ajax( 
 		{
 			url: "csvfilter.php",
 			dataType : "json",
 			success : function( data, textstatus, jqXHR ) {
-				//Right, now make a dropdown out of the options
 				var file = data['files'];
 				csv2datatable( "csv/" + file );
 				

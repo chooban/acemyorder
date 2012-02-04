@@ -13,13 +13,13 @@
 	
 	<tbody id="orderbody">
 		{#foreach $T as row}
-			{#param name=total value=$P.total + ( $T.row.price * 100 )}
+			{#param name=total value=$P.total + ( ( $T.row.price * 100) * $T.row.quantity )}
 			<tr class="orderrow">
 				<td>{$T.row.previews}</td>
 				<td><input type="text" class="spinner" value="{$T.row.quantity}" width="5"/></td>
 				<td>{$T.row.title}</td>
 				<td>{$T.row.price}</td>
-				<td>{$T.row.publisher}</td>	
+				<td>{$T.row.publisher}</td>
 			<tr>
 		{#/for}
 	</tbody>
