@@ -7,6 +7,23 @@ var order = [];
 // And this will eventually hold proper data
 var orderData = [];
 
+// Nabbed from stack overflow
+function findByPreviewsID(arr, closure, previewsId ) {
+	// Set up return value.
+	var retVal = -1;
+	$.each(arr,function(idx, val){
+		// option 2.  Run the closure:
+		if ( closure( val, previewsId ) ) {
+			retVal = idx;
+		}
+	});
+	return retVal;
+}
+
+var closure = function( item, previewsId ) { 
+	return item.previews == previewsId;
+}
+
 /**
 *
 *  Base64 encode / decode
@@ -382,23 +399,45 @@ function calculateOrder() {
 		orderTotal += price * 100;
 	}
 	
-	orderData = tmpOrderData;
+	// Look for previously set quantities
+	for ( var i in tmpOrderData ) {
+		var prevOrder = findByPreviewsID( orderData, closure, tmpOrderData[i].previews );
+		if ( prevOrder > -1 ) {
+			tmpOrderData[i].quantity = orderData[prevOrder].quantity;
+		}
+	}
+	orderData = tmpOrderData;		
 	$('#dialogcontents').setTemplateURL( 'templates/ordertable.html' );
 	$('#dialogcontents').processTemplate( orderData );
-	
+		
 	$('#dialogcontents').dialog( "open" );
+	$( '#dialogcontents' ).bind( "dialogbeforeclose", 
+		function(event, ui) {
+			// On close, update quantities
+			$('tr.orderrow').each( 
+				function( i, tr ) {
+					var inputs = tr.getElementsByTagName( "input" );
+					var quantity = $( inputs[0] ).spinner( "value" );
+					orderData[i].quantity = quantity;
+				}
+			)
+			return true;
+		}
+	);
+	
+	// Now turn the quantity fields into spinners
 	$('.spinner').spinner( {
 		"min" : 1,
 	});
 	
-	// And now that the button exists...	
+	// And now that the button exists...
 	$('#submitorder').click( function( event ) {
 		
 		// Iterate through the order table, set the quantities in orderData, turn it into a csv
 		$('tr.orderrow').each( function( i, tr ) {
-			var inputs = tr.getElementsByTagName( "input" );						
-			orderData[i]['quantity'] = $( inputs[0] ).spinner( "value" );
-		});		
+			var inputs = tr.getElementsByTagName( "input" );
+			orderData[i].quantity = $( inputs[0] ).spinner( "value" );
+		});
 		
 		// Turn orderData into a csv, set it in the form, submit the form
 		var sCSV = '';
@@ -428,7 +467,7 @@ $(document).ready( function() {
 			url: "csvfilter.php",
 			dataType : "json",
 			success : function( data, textstatus, jqXHR ) {
-				//Right, now make a dropdown out of the options						
+				//Right, now make a dropdown out of the options
 				var file = data['files'];
 				csv2datatable( "csv/" + file );
 				
@@ -470,10 +509,14 @@ $(document).ready( function() {
 		}
 	});
 	
-	$('#dialogcontents').dialog( { "modal" : true, "autoOpen" : false, "minWidth": 600 } );
+	$('#dialogcontents').dialog( { 
+		"modal" : true, 
+		"autoOpen" : false, 
+		"minWidth": 600,
+	});
 	
 	$('#showorder').click( function( event ) {
-		calculateOrder();				
+		calculateOrder();	
 	} );
 
 } );
