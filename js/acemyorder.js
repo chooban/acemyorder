@@ -364,14 +364,14 @@ function calculateOrder() {
 	var table = $("table#datatable").dataTable( {
 		"bRetrieve": true,
 	} );
-	orderData = [];
+	var tmpOrderData = [];
 	var orderTotal = 0;
 	
 	for ( var i = 0; i < order.length; i++ ) {
 		var aData = table.fnGetData( order[i] );
 		var price = /&pound;(.*)/.exec( aData[2] )[1];
 		
-		orderData.push( {
+		tmpOrderData.push( {
 			"previews" : aData[0],
 			"quantity" : 1,
 			"title" : aData[1],
@@ -381,7 +381,8 @@ function calculateOrder() {
 		
 		orderTotal += price * 100;
 	}
-		
+	
+	orderData = tmpOrderData;
 	$('#dialogcontents').setTemplateURL( 'templates/ordertable.html' );
 	$('#dialogcontents').processTemplate( orderData );
 	
