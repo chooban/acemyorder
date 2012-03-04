@@ -231,7 +231,7 @@ function csv2datatable( sURL ) {
 				var row;
 				var was;
 				var match;
-				var buttonColTemplate = $.createTemplate( '<input type="checkbox" id="row{$T.rowId}" class="addtoorder"/>' );
+				var buttonColTemplate = $.createTemplate( '<input type="checkbox" id="row{$T.rowId}" value="previews_{$T.previewsId}" class="addtoorder"/>' );
 
 				for ( var i = 0; i < csvdata.length; i++ ) {
 					row = new Array();
@@ -308,7 +308,11 @@ function csv2datatable( sURL ) {
 							{
 								"aTargets" : [ "buttoncol" ],
 								"fnRender" : function( oObj ) {
-									return $.processTemplateToText( buttonColTemplate, { rowId : oObj.iDataRow } );
+									return $.processTemplateToText( 
+										buttonColTemplate, 
+										{ rowId : oObj.iDataRow,
+										  previewsId : oObj.aData[0] } 
+									);
 								},
 								"sClass" : "buttoncol",
 							}
@@ -419,6 +423,7 @@ function calculateOrder() {
 	$('.spinner').spinner( {
 		"min" : 1,
 	});
+	
 	$('.spinner').change( function () {
 		$('tr.orderrow').each( function( i, tr ) {
 			var inputs = tr.getElementsByTagName( "input" );
@@ -451,6 +456,27 @@ function calculateOrder() {
 		$('#encodeddata').val( Base64.encode( sCSV ) );
 		$('#exportorder').submit();
 	} );
+	
+	$( 'table#complete_order_form').click( function( event ) {
+		if ( $(event.target).is( 'input.delete_from_order') ) {
+			event.stopPropagation();
+			var previewsId = /id_(.*)/.exec( event.target.id )[1];
+			
+			var idx = findByPreviewsID( orderData, closure, previewsId );
+
+			if ( idx > -1 ) {
+				orderData.splice( idx, 1 );
+			}
+			calculateTotals();
+			
+			var elem = $( "input:checkbox[value='previews_" + previewsId + "']" );
+			elem.removeClass( "deletefromorder" );
+			elem.addClass( "addtoorder" );
+			elem.attr( 'checked', false );
+			
+			$( event.target ).closest( 'tr' ).remove();
+		}
+	});
 }
 
 $(document).ready( function() {

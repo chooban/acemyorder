@@ -1,6 +1,6 @@
 {#param name=total value=0}
 
-<table summary="Completed order" >
+<table summary="Completed order" id="complete_order_form">
 	<thead id="orderhead">
 		<tr>
 			<th>Previews ID</th>
@@ -8,18 +8,20 @@
 			<th>Title</th>
 			<th>Price</th>
 			<th>Publisher</th>
+			<th>&nbsp;</th>
 		</tr>
 	</thead>
 	
 	<tbody id="orderbody">
 		{#foreach $T as row}
 			{#param name=total value=$P.total + ( ( $T.row.price * 100) * $T.row.quantity )}
-			<tr class="orderrow">
+			<tr id="row_{$T.row.previews}" class="orderrow">
 				<td>{$T.row.previews}</td>
 				<td><input type="text" class="spinner" value="{$T.row.quantity}" width="5"/></td>
 				<td>{$T.row.title}</td>
 				<td>{$T.row.price}</td>
 				<td>{$T.row.publisher}</td>
+				<td><input type="button" id="id_{$T.row.previews}" class="delete_from_order" value="Delete"/></td>
 			<tr>
 		{#/for}
 	</tbody>
