@@ -8,6 +8,7 @@
 			<th>Title</th>
 			<th>Price</th>
 			<th>Publisher</th>
+			<th>Comments</th>
 			<th>&nbsp;</th>
 		</tr>
 	</thead>
@@ -19,8 +20,9 @@
 				<td>{$T.row.previews}</td>
 				<td><input type="text" class="spinner" value="{$T.row.quantity}" width="5"/></td>
 				<td>{$T.row.title}</td>
-				<td>{$T.row.price}</td>
+				<td>&pound;{$T.row.price}</td>
 				<td>{$T.row.publisher}</td>
+				<td><input type="text" value="{$T.row.comment}"/></td>
 				<td><input type="button" id="id_{$T.row.previews}" class="delete_from_order" value="Delete"/></td>
 			<tr>
 		{#/for}
@@ -30,8 +32,8 @@
 		<tr>
 			<td colspan="2">&nbsp;</td>
 			<td colspan="1"><b>Total</b></td>
-			<td colspan="1" id="ordertotal">{$P.total / 100}</td>
-			<td></td>
+			<td colspan="1" >&pound;<span id="ordertotal">{$P.total / 100}</span></td>
+			<td colspan="3">&nbsp;</td>
 		</tr>
 	</tfoot>
 </table>
