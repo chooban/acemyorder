@@ -237,6 +237,8 @@ function calculateOrder() {
 					var inputs = tr.getElementsByTagName( "input" );
 					var quantity = $( inputs[0] ).spinner( "value" );
 					orderData[i].quantity = quantity;
+					
+					orderData[i].comment = $( inputs[1] ).val();
 				}
 			)
 			calculateTotals();
