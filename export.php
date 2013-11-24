@@ -23,7 +23,7 @@ header("Content-Disposition: filename=order" . $jsonData->{'issue'} . ".csv");
 header("Pragma: no-cache");
 header("Expires: 0");
 
-file_put_contents('php://stderr', print_r($contents, TRUE));
+# file_put_contents('php://stderr', print_r($contents, TRUE));
 print $contents;
 
 ?>
