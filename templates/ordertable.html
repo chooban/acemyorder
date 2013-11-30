@@ -18,7 +18,7 @@
 			{#param name=total value=$P.total + ( ( $T.row.price * 100) * $T.row.quantity )}
 			<tr id="row_{$T.row.previews}" class="orderrow">
 				<td>{$T.row.previews}</td>
-				<td><input type="text" class="spinner" value="{$T.row.quantity}" width="5"/></td>
+				<td><input type="text" id="spinner_{$T.row.previews}" class="spinner" value="{$T.row.quantity}" width="5"/></td>
 				<td>{$T.row.title}</td>
 				<td>&pound;{$T.row.price}</td>
 				<td>{$T.row.publisher}</td>

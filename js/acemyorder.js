@@ -1,23 +1,6 @@
 var rePrice = /(\d+(\.\d\d)?)/;
 
-// I hate these two global fields.
-var orderData = [];
-
-/**
- * Another hack that is a major TODO.
- * 
- * It's a search function, really. Surely there's a better way.
- */
-function findByPreviewsID(arr, previewsId ) {
-	// Set up return value.
-	var retVal = -1;
-	$.each(arr,function(idx, val){
-		if ( val.previews == previewsId ) {
-			retVal = idx;
-		}
-	});
-	return retVal;
-}
+var order = new CustomerOrder();
 
 function csv2datatable( sURL) {
 	$.ajax(
@@ -41,18 +24,11 @@ function csv2datatable( sURL) {
 					row = new Array();
 
 					// Previews code
-					row[0] = csvdata[i][0];
-
 					// Title
-					row[1] = csvdata[i][1];
-
 					// Price
-					if ( csvdata[i][3] != null ) {
-						row[2] = parseFloat( csvdata[i][3] );
-					}
-					else {
-						row[2] = "";
-					}
+					row[0] = csvdata[i][0];
+					row[1] = csvdata[i][1];
+					row[2] = csvdata[i][3] != null ? parseFloat( csvdata[i][3] ) : "";
 
 					// Reduced from
 					was = csvdata[i][5];
@@ -132,60 +108,13 @@ function csv2datatable( sURL) {
 	);
 }
 
-function addToOrder( iRow ) {
-	var table = $("table#datatable").dataTable( {
-		"bRetrieve": true,
-	} );
-	var aData = table.fnGetData( iRow );
-	var price = parseFloat( /&pound;(.*)/.exec( aData[2] )[1] );
-
-	orderData.push( {
-		"previews" : aData[0],
-		"quantity" : 1,
-		"title" : aData[1],
-		"price" : price,
-		"publisher" : aData[4],
-		"comment": ''
-	});
-
-	orderData.sort( function( a, b ) {
-		return a.previews.localeCompare( b.previews );
-	});
-
-	calculateTotals();
-}
-
-function deleteFromOrder( iRow ) {
-	var table = $("table#datatable").dataTable( {
-		"bRetrieve": true,
-	} );
-	var aData = table.fnGetData( iRow );
-	var idx = findByPreviewsID( orderData, aData[0] );
-
-	if ( idx > -1 ) {
-		orderData.splice( idx, 1 );
-	}
-
-	calculateTotals();
-}
-
 function calculateTotals() {
-	var totalCost = 0;
-	var numItems = 0;
-	var numTitles = 0;
-
-	var lineData;
-	for ( var i in orderData ) {
-		lineData = orderData[i];
-		numItems += lineData.quantity;
-		numTitles++;
-		totalCost += (lineData.price * 100) * lineData.quantity;
-	}
-
-	$('#runningtotal').html( "&pound;" + (totalCost/100).toFixed( 2 ) );
-	$('#numitems').html( numItems );
-	$('#numtitles').html( numTitles );
-	$('#ordertotal').html( (totalCost/100).toFixed( 2 ) );
+  var formattedTotal = (order.getTotal()/100).toFixed( 2 );
+  window.console && console.log( "Setting total to " + formattedTotal );
+	$('#runningtotal').html( "&pound;" + formattedTotal );
+	$('#numitems').html( order.getNumItems() );
+	$('#numtitles').html( order.getNumTitles() );
+	$('#ordertotal').html( formattedTotal );
 }
 
 /**
@@ -196,63 +125,38 @@ function calculateTotals() {
 function calculateOrder() {
 
 	$('#dialogcontents').setTemplateURL( 'templates/ordertable.html' );
-	$('#dialogcontents').processTemplate( orderData );
-
+	$('#dialogcontents').processTemplate( order.lineItems );
 	$('#dialogcontents').dialog( "open" );
-
-  /**
-   * This came about after a bug report that pointed out that
-   * edits to the quantities didn't stick if the user went
-   * back to the data table.
-   */
-	$( '#dialogcontents' ).bind( "dialogbeforeclose",
-		function(event, ui) {
-			// On close, update quantities
-			$('tr.orderrow').each(
-				function( i, tr ) {
-					var inputs = tr.getElementsByTagName( "input" );
-					var quantity = $( inputs[0] ).spinner( "value" );
-					orderData[i].quantity = quantity;
-					
-					orderData[i].comment = $( inputs[1] ).val();
-				}
-			)
-			calculateTotals();
-			return true;
-		}
-	);
 
 	// Now turn the quantity fields into spinners
 	$('.spinner').spinner( {
 		"min" : 1,
+    change:function( event, ui ) {
+      /**
+       * For any spinner that changes, recalculate the order.
+       * Not overly efficient, but it's never going to be noticeable.
+       *
+       * TODO: Make the 'spin' function work.
+       */
+      $('tr.orderrow').each( function( i, tr ) {
+        var previewsId = /row_(.*)/.exec( tr.id )[1];
+        var inputs = tr.getElementsByTagName( "input" );
+        order.setQuantity( previewsId, $( inputs[0] ).spinner( "value" ) );
+      });
+      calculateTotals();
+    },
 	});
-
-  /**
-   * For any spinner that changes, recalculate the order.
-   * Not overly efficient, but it's never going to be noticeable.
-   */
-	$('.spinner').change( function () {
-		$('tr.orderrow').each( function( i, tr ) {
-			var inputs = tr.getElementsByTagName( "input" );
-			orderData[i].quantity = $( inputs[0] ).spinner( "value" );
-		});
-		calculateTotals();
-	})
 
 	// And now that the button exists...
 	$('#submitorder').click( function( event ) {
 
 		// Iterate through the order table, set the quantities in orderData
 		$('tr.orderrow').each( function( i, tr ) {
+			var previewsId = /row_(.*)/.exec( tr.id )[1];
 			var inputs = tr.getElementsByTagName( "input" );
-			orderData[i].quantity = $( inputs[0] ).spinner( "value" );
-			orderData[i].comment = '"' + $( inputs[1] ).val() + '"';
+			order.setQuantity( previewsId, $( inputs[0] ).spinner( "value" ) );
+      order.setComment( previewsId, '"' + $( inputs[1] ).val() + '"' );
 		});
-
-		var orderTotal = 0;
-		for ( var i = 0; i < orderData.length; i++ ) {
-			orderTotal += ( (orderData[i]['price']*100) * orderData[i]['quantity'] );
-    }
 
 		// Add the callback
 		$('#exportorder').submit(function() {
@@ -260,15 +164,10 @@ function calculateOrder() {
 			$( '#postsubmitmessage' ).dialog( "open" );
 		} );
 
-    /**
-     * Get the Previews number from elsewhere in the page.
-     * For the record, I don't like the next line any more than you do.
-     */
-    var previewsIssue = /[^\d]*(\d+)\..*/.exec( $('#nowdisplaying').text() )[1];
     var completeOrder = new Object();
-    completeOrder.issue = previewsIssue;
-    completeOrder.line_items = orderData;
-    completeOrder.order_total = orderTotal;
+    completeOrder.issue = order.issue;
+    completeOrder.line_items = order.lineItems;
+    completeOrder.order_total = order.getTotal();
 
     var encoded = $.toJSON( completeOrder );
     // console.log( encoded );
@@ -283,14 +182,14 @@ function calculateOrder() {
 		if ( $(event.target).is( 'input.delete_from_order') ) {
 			event.stopPropagation();
 			var previewsId = /id_(.*)/.exec( event.target.id )[1];
-			
-			var idx = findByPreviewsID( orderData, previewsId );
-
-			if ( idx > -1 ) {
-				orderData.splice( idx, 1 );
-			}
+			order.deleteFromOrder( previewsId );
 			calculateTotals();
-			
+		
+      /**
+       * This is some funkery that swaps classes around so 
+       * that items that have been deleted from the order
+       * are no longer selected.
+       */
 			var elem = $( "input:checkbox[value='previews_" + previewsId + "']" );
 			elem.removeClass( "deletefromorder" );
 			elem.addClass( "addtoorder" );
@@ -302,6 +201,11 @@ function calculateOrder() {
 }
 
 $(document).ready( function() {
+  /**
+   * I'm sure this seemed like a good idea at the time, but not so
+   * much now. It makes a roundtrip to the server to get a filename 
+   * and then another roundtrip to download that file. Pointless.
+   */
 	$.ajax(
 		{
 			url: "csvfilter.php",
@@ -310,6 +214,8 @@ $(document).ready( function() {
 				var file = data['files'];
 				csv2datatable( "csv/" + file );
 
+        var previewsIssue = /[^\d]*(\d+)\..*/.exec( file )[1];
+        order.issue = previewsIssue;
 				// Set the "Now displaying..." text
 				$('#nowdisplaying').text( "Displaying " + file );
 				$('#directlink').html( "<a href=\"csv/" + file + "\">Direct link to csv</a>" );
@@ -318,12 +224,20 @@ $(document).ready( function() {
 	);
 
 	$('table#datatable').click( function(event) {
+    var table = $("table#datatable").dataTable( {
+      "bRetrieve": true,
+    } );
+    var aData = table.fnGetData( /row(\d+)/.exec( event.target.id )[1] );
+
 		if ( $(event.target).is( 'input.addtoorder' ) ) {
 			// We're on the case
 			event.stopPropagation();
 
 			// Add the row to the order. The id is "row(number)"
-			addToOrder( /row(\d+)/.exec( event.target.id )[1] );
+      var price = parseFloat( /&pound;(.*)/.exec( aData[2] )[1] );
+
+      var lineItem = new LineItem( aData[0], aData[1], price, aData[4] );
+      order.addToOrder( lineItem );
 
 			// Check the checkbox
 			var elem = $( "#" + event.target.id );
@@ -333,21 +247,34 @@ $(document).ready( function() {
 		}
 		else if ( $(event.target).is( 'input.deletefromorder' ) ) {
 			event.stopPropagation();
-
-			deleteFromOrder( /row(\d+)/.exec( event.target.id )[1] );
-
+      order.deleteFromOrder( aData[0] );
 			// Change the class
 			var elem = $( "#" + event.target.id );
 			elem.removeClass( "deletefromorder" );
 			elem.addClass( "addtoorder" );
 			elem.checked = false;
 		}
+    calculateTotals();
 	});
 
 	$('#dialogcontents').dialog( {
 		"modal" : true,
 		"autoOpen" : false,
 		"minWidth": 800,
+    beforeClose:function(event, ui) {
+			// On close, update quantities
+			$('tr.orderrow').each(
+				function( i, tr ) {
+          var previewsId = /row_(.*)/.exec( tr.id )[1];
+					var inputs = tr.getElementsByTagName( "input" );
+					var quantity = $( inputs[0] ).spinner( "value" );
+					order.setQuantity( previewsId, quantity );
+					order.setComment( previewsId,  $( inputs[1] ).val() );
+				}
+			)
+			calculateTotals();
+			return true;
+		},
 	});
 	
 	$('#postsubmitmessage').dialog( {
