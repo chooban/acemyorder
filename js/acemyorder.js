@@ -1,8 +1,7 @@
-var rePrice = /(\d+(\.\d\d)?)/;
-
+// There's got to be a better way than a global variable.
 var order = new CustomerOrder();
 
-function csv2datatable( sURL) {
+function csv2datatable( sURL ) {
 	$.ajax(
 		{
 			url : sURL,
@@ -33,7 +32,7 @@ function csv2datatable( sURL) {
 					// Reduced from
 					was = csvdata[i][5];
 					if ( was.length > 0 ) {
-						match = rePrice.exec( was );
+						match = /(\d+(\.\d\d)?)/.exec( was );
 						row[3] = match[1];
 					}
 					else {
