@@ -108,9 +108,12 @@ function csv2datatable( sURL) {
 	);
 }
 
+/**
+ * This isn't anything to do with calculate much of anything 
+ * any more and should be renamed.
+ */
 function calculateTotals() {
   var formattedTotal = (order.getTotal()/100).toFixed( 2 );
-  window.console && console.log( "Setting total to " + formattedTotal );
 	$('#runningtotal').html( "&pound;" + formattedTotal );
 	$('#numitems').html( order.getNumItems() );
 	$('#numtitles').html( order.getNumTitles() );
@@ -131,13 +134,13 @@ function calculateOrder() {
 	// Now turn the quantity fields into spinners
 	$('.spinner').spinner( {
 		"min" : 1,
+    spin:function( event, ui ) {
+      // The ID of the spinner holds the Previews ID
+      var previewsId = /spinner_(.*)/.exec( this.id )[1];
+      order.setQuantity( previewsId, ui.value );
+      calculateTotals();
+    },
     change:function( event, ui ) {
-      /**
-       * For any spinner that changes, recalculate the order.
-       * Not overly efficient, but it's never going to be noticeable.
-       *
-       * TODO: Make the 'spin' function work.
-       */
       $('tr.orderrow').each( function( i, tr ) {
         var previewsId = /row_(.*)/.exec( tr.id )[1];
         var inputs = tr.getElementsByTagName( "input" );
@@ -170,7 +173,6 @@ function calculateOrder() {
     completeOrder.order_total = order.getTotal();
 
     var encoded = $.toJSON( completeOrder );
-    // console.log( encoded );
 
     // Memory fails me as to why I did it like this rather than an
     // asynchronous call
