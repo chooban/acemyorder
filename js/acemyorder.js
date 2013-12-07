@@ -229,11 +229,12 @@ $(document).ready( function() {
     var table = $("table#datatable").dataTable( {
       "bRetrieve": true,
     } );
-    var aData = table.fnGetData( /row(\d+)/.exec( event.target.id )[1] );
 
 		if ( $(event.target).is( 'input.addtoorder' ) ) {
 			// We're on the case
 			event.stopPropagation();
+
+      var aData = table.fnGetData( /row(\d+)/.exec( event.target.id )[1] );
 
 			// Add the row to the order. The id is "row(number)"
       var price = parseFloat( /&pound;(.*)/.exec( aData[2] )[1] );
@@ -249,8 +250,10 @@ $(document).ready( function() {
 		}
 		else if ( $(event.target).is( 'input.deletefromorder' ) ) {
 			event.stopPropagation();
+      var aData = table.fnGetData( /row(\d+)/.exec( event.target.id )[1] );
       order.deleteFromOrder( aData[0] );
-			// Change the class
+
+			// Change the class so that we can toggle orders.
 			var elem = $( "#" + event.target.id );
 			elem.removeClass( "deletefromorder" );
 			elem.addClass( "addtoorder" );
