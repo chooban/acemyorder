@@ -4,12 +4,19 @@ var order = new CustomerOrder();
 function csv2datatable( sURL ) {
 	$.ajax(
 		{
-			url : sURL,
+			url : "csvfilter.php",
 			scriptCharset : "UTF-8",
 			type : "GET",
-			dataType : "text",
+			dataType : "json",
 			success : function( data, textStatus, jqXHR ) {
-				var csvdata = jQuery.csv()( data );
+
+        var previewsIssue = data['file'];
+        order.issue = previewsIssue;
+
+	 			// Set the "Now displaying..." text
+	 			$('#nowdisplaying').text( "Displaying " + previewsIssue );
+	 			$('#directlink').html( "<a href=\"csv/" + previewsIssue + ".csv\">Direct link to csv</a>" );
+				var csvdata = jQuery.csv()( data['contents'] );
 
 				// The first row's not useful as it's the header row
 				csvdata.pop();
@@ -202,27 +209,7 @@ function calculateOrder() {
 }
 
 $(document).ready( function() {
-  /**
-   * I'm sure this seemed like a good idea at the time, but not so
-   * much now. It makes a roundtrip to the server to get a filename 
-   * and then another roundtrip to download that file. Pointless.
-   */
-	$.ajax(
-		{
-			url: "csvfilter.php",
-			dataType : "json",
-			success : function( data, textstatus, jqXHR ) {
-				var file = data['files'];
-				csv2datatable( "csv/" + file );
-
-        var previewsIssue = /[^\d]*(\d+)\..*/.exec( file )[1];
-        order.issue = previewsIssue;
-				// Set the "Now displaying..." text
-				$('#nowdisplaying').text( "Displaying " + file );
-				$('#directlink').html( "<a href=\"csv/" + file + "\">Direct link to csv</a>" );
-			}
-		}
-	);
+  csv2datatable();
 
 	$('table#datatable').click( function(event) {
     var table = $("table#datatable").dataTable( {
@@ -266,7 +253,7 @@ $(document).ready( function() {
 		"autoOpen" : false,
 		"minWidth": 800,
     beforeClose:function(event, ui) {
-			// On close, update quantities
+			// On close, update quantities and comments
 			$('tr.orderrow').each(
 				function( i, tr ) {
           var previewsId = /row_(.*)/.exec( tr.id )[1];

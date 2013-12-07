@@ -4,7 +4,6 @@ function CustomerOrder( issue ) {
 }
 
 CustomerOrder.prototype = {
-  constructor: CustomerOrder,
   findByPreviewsID:function( previewsID ) {
     var ret = -1;
     for ( var idx = 0; idx < this.lineItems.length; idx++ ) {
