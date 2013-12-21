@@ -2,6 +2,18 @@
 var order = new CustomerOrder();
 
 function csv2datatable( sURL ) {
+
+  /**
+   * I *will* fix this!
+   */
+  var previewsToMonth = new Array();
+  previewsToMonth["465"] = "DEC13";
+  previewsToMonth["466"] = "JAN14";
+  previewsToMonth["467"] = "FEB14";
+  previewsToMonth["468"] = "MAR14";
+  previewsToMonth["469"] = "APR14";
+  previewsToMonth["470"] = "MAY14";
+
 	$.ajax(
 		{
 			url : "csvfilter.php",
@@ -24,7 +36,12 @@ function csv2datatable( sURL ) {
 				var row;
 				var was;
 				var match;
+
+        var month = previewsToMonth[ previewsIssue.slice( -3 ) ];
+
 				var buttonColTemplate = $.createTemplate( '<input type="checkbox" id="row{$T.rowId}" value="previews_{$T.previewsId}" class="addtoorder"/>' );
+        var previewsLinkTemplate = $.createTemplate( '<a class="previewsworld" href="http://www.previewsworld.com/Home/1/1/71/916?stockItemID={$T.itemID}">{$T.text}</a>' );
+
 
 				for ( var i = 0; i < csvdata.length; i++ ) {
 					row = new Array();
@@ -101,7 +118,19 @@ function csv2datatable( sURL ) {
 									);
 								},
 								"sClass" : "buttoncol",
-							}
+							},
+              {
+                "aTargets": [ "previews" ],
+                "fnRender" : function( oObj ) {
+                  return $.processTemplateToText( 
+                    previewsLinkTemplate,
+                    {
+                      text: oObj.aData[0],
+                      itemID : month + oObj.aData[0].slice( -4 ),
+                    }
+                      );
+                },
+              },
 						],
 
 					}
