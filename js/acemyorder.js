@@ -40,8 +40,7 @@ function csv2datatable( sURL ) {
         var month = previewsToMonth[ previewsIssue.slice( -3 ) ];
 
 				var buttonColTemplate = $.createTemplate( '<input type="checkbox" id="row{$T.rowId}" value="previews_{$T.previewsId}" class="addtoorder"/>' );
-        var previewsLinkTemplate = $.createTemplate( '<a class="previewsworld" href="http://www.previewsworld.com/Home/1/1/71/916?stockItemID={$T.itemID}">{$T.text}</a>' );
-
+        var previewsLinkTemplate = $.createTemplate( '<a href="http://www.previewsworld.com/Home/1/1/71/916?stockItemID={$T.itemID}">{$T.displayText}</a>' );
 
 				for ( var i = 0; i < csvdata.length; i++ ) {
 					row = new Array();
@@ -121,14 +120,15 @@ function csv2datatable( sURL ) {
 							},
               {
                 "aTargets": [ "previews" ],
-                "fnRender" : function( oObj ) {
+                "mRender" : function( data, type, full ) {
+                  var id = full[0].slice( -4 );
                   return $.processTemplateToText( 
                     previewsLinkTemplate,
                     {
-                      text: oObj.aData[0],
-                      itemID : month + oObj.aData[0].slice( -4 ),
+                      displayText: full[0],
+                      itemID: month + id,
                     }
-                      );
+                  );
                 },
               },
 						],
