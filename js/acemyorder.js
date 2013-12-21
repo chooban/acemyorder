@@ -39,7 +39,7 @@ function csv2datatable(sURL) {
       var month = previewsToMonth[previewsIssue.slice(-3)];
 
       var buttonColTemplate = $.createTemplate('<input type="checkbox" id="row{$T.rowId}" value="previews_{$T.previewsId}" class="addtoorder"/>');
-      var previewsLinkTemplate = $.createTemplate('<a href="http://www.previewsworld.com/Home/1/1/71/916?stockItemID={$T.itemID}">{$T.displayText}</a>');
+      var previewsLinkTemplate = $.createTemplate('<a target="new" href="http://www.previewsworld.com/Home/1/1/71/916?stockItemID={$T.itemID}">{$T.displayText}</a>');
 
       for (var i = 0; i < csvdata.length; i++) {
         row = new Array();
