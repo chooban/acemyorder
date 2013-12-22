@@ -26,15 +26,19 @@ function issueToMonth(issueNumber) {
 
   // I'm not sure if this is necessary, but I'll deliberately
   // coerce to a string anyway.
-  var month = months["" + ( issueNumber % 12)];
+  var month = months['' + (issueNumber % 12)];
 
   // Now to work out the year.
   var date = new Date();
 
   var currentMonth = date.getMonth();
-  var currentYear = ('' + date.getFullYear()).slice( -2 );
+  var currentYear = ('' + date.getFullYear()).slice(-2);
 
-  if ( ( (currentMonth + 2) % 12 ) > ( issueNumber % 12 ) ) {
+  // If it's less than the current month then we must have rolled over 
+  // into the next year. Really, I should work out a better way of mapping
+  // the issue number to a year because really, how hard can that be once
+  // I know the epoch of Previews?
+  if (((parseInt(issueNumber, 10) + 2) % 12) < currentMonth) {
     currentYear++;
   }
 
@@ -65,7 +69,7 @@ function csv2datatable(sURL) {
       var was;
       var match;
 
-      var month = issueToMonth( previewsIssue.slice(-3) );
+      var month = issueToMonth(previewsIssue.slice(-3));
 
       var buttonColTemplate = $.createTemplate('<input type="checkbox" id="row{$T.rowId}" value="previews_{$T.previewsId}" class="addtoorder"/>');
       var previewsLinkTemplate = $.createTemplate('<a target="new" href="http://www.previewsworld.com/Home/1/1/71/916?stockItemID={$T.itemID}">{$T.displayText}</a>');
