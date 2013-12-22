@@ -1,18 +1,47 @@
 // There's got to be a better way than a global variable.
 var order = new CustomerOrder();
 
-function csv2datatable(sURL) {
+/**
+ * This takes the Previews issue number we're dealing with
+ * and turns it into a string containing the month and year.
+ * e.g. 465 is DEC13, 466 is JAN14, and so on.
+ */
 
-  /**
-   * I *will* fix this!
-   */
-  var previewsToMonth = new Array();
-  previewsToMonth["465"] = "DEC13";
-  previewsToMonth["466"] = "JAN14";
-  previewsToMonth["467"] = "FEB14";
-  previewsToMonth["468"] = "MAR14";
-  previewsToMonth["469"] = "APR14";
-  previewsToMonth["470"] = "MAY14";
+function issueToMonth(issueNumber) {
+  // Not overly pretty, but it works.
+  var months = {
+    "0": "MAR",
+    "1": "APR",
+    "2": "MAY",
+    "3": "JUN",
+    "4": "JUL",
+    "5": "AUG",
+    "6": "SEP",
+    "7": "OCT",
+    "8": "NOV",
+    "9": "DEC",
+    "10": "JAN",
+    "11": "FEB",
+  };
+
+  // I'm not sure if this is necessary, but I'll deliberately
+  // coerce to a string anyway.
+  var month = months["" + ( issueNumber % 12)];
+
+  // Now to work out the year.
+  var date = new Date();
+
+  var currentMonth = date.getMonth();
+  var currentYear = ('' + date.getFullYear()).slice( -2 );
+
+  if ( ( (currentMonth + 2) % 12 ) > ( issueNumber % 12 ) ) {
+    currentYear++;
+  }
+
+  return month + currentYear;
+}
+
+function csv2datatable(sURL) {
 
   $.ajax({
     url: "csvfilter.php",
@@ -21,13 +50,13 @@ function csv2datatable(sURL) {
     dataType: "json",
     success: function(data, textStatus, jqXHR) {
 
-      var previewsIssue = data['file'];
+      var previewsIssue = data.file;
       order.issue = previewsIssue;
 
       // Set the "Now displaying..." text
       $('#nowdisplaying').text("Displaying " + previewsIssue);
       $('#directlink').html("<a href=\"csv/" + previewsIssue + ".csv\">Direct link to csv</a>");
-      var csvdata = jQuery.csv()(data['contents']);
+      var csvdata = jQuery.csv()(data.contents);
 
       // The first row's not useful as it's the header row
       csvdata.pop();
@@ -36,20 +65,20 @@ function csv2datatable(sURL) {
       var was;
       var match;
 
-      var month = previewsToMonth[previewsIssue.slice(-3)];
+      var month = issueToMonth( previewsIssue.slice(-3) );
 
       var buttonColTemplate = $.createTemplate('<input type="checkbox" id="row{$T.rowId}" value="previews_{$T.previewsId}" class="addtoorder"/>');
       var previewsLinkTemplate = $.createTemplate('<a target="new" href="http://www.previewsworld.com/Home/1/1/71/916?stockItemID={$T.itemID}">{$T.displayText}</a>');
 
       for (var i = 0; i < csvdata.length; i++) {
-        row = new Array();
+        row = [];
 
         // Previews code
         // Title
         // Price
         row[0] = csvdata[i][0];
         row[1] = csvdata[i][1];
-        row[2] = csvdata[i][3] != null ? parseFloat(csvdata[i][3]) : "";
+        row[2] = csvdata[i][3] !== null ? parseFloat(csvdata[i][3]) : "";
 
         // Reduced from
         was = csvdata[i][5];
@@ -97,7 +126,7 @@ function csv2datatable(sURL) {
           }, {
             "aTargets": ["reduced"],
             "fnRender": function(oObj) {
-              return (oObj.aData[3] != "" ? "&pound;" + oObj.aData[3] : "");
+              return (oObj.aData[3] !== "" ? "&pound;" + oObj.aData[3] : "");
             },
           }, {
             "aTargets": ["buttoncol"],
@@ -191,7 +220,7 @@ function calculateOrder() {
       $('#postsubmitmessage').dialog("open");
     });
 
-    var completeOrder = new Object();
+    var completeOrder = {};
     completeOrder.issue = order.issue;
     completeOrder.line_items = order.lineItems;
     completeOrder.order_total = order.getTotal();
@@ -278,7 +307,7 @@ $(document).ready(function() {
         var quantity = $(inputs[0]).spinner("value");
         order.setQuantity(previewsId, quantity);
         order.setComment(previewsId, $(inputs[1]).val());
-      })
+      });
       calculateTotals();
       return true;
     },
