@@ -95,7 +95,7 @@ function csv2datatable(sURL) {
         }
 
         // Publisher
-        row[4] = csvdata[i][6].toLowerCase();
+        row[4] = csvdata[i][7].toLowerCase();
 
         // What will eventually be the button
         row[5] = "";
