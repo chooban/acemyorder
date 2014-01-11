@@ -95,7 +95,7 @@ function csv2datatable(sURL) {
         }
 
         // Publisher
-        row[4] = csvdata[i][8].toLowerCase();
+        row[4] = csvdata[i][csvdata[i].length-1].toLowerCase();
 
         // What will eventually be the button
         row[5] = "";
@@ -110,50 +110,49 @@ function csv2datatable(sURL) {
         "bAutoWidth": false,
         "bDestroy": true,
         "aoColumnDefs": [{
-            "aTargets": ["description"],
-            "sWidth": "50%",
-          }, {
-            "aTargets": ["publisher"],
-            "sWidth": "20%",
-            "sClass": "publisher",
-          }, {
-            "aTargets": ["price", "reduced", "previews", "buttoncol"],
-            "sWidth": "5%",
-          }, {
-            "aTargets": ["price", "reduced", "buttoncol"],
-            "bSortable": false,
-          }, {
-            "aTargets": ["price"],
-            "fnRender": function(oObj) {
-              return "&pound;" + oObj.aData[2];
-            },
-          }, {
-            "aTargets": ["reduced"],
-            "fnRender": function(oObj) {
-              return (oObj.aData[3] !== "" ? "&pound;" + oObj.aData[3] : "");
-            },
-          }, {
-            "aTargets": ["buttoncol"],
-            "fnRender": function(oObj) {
-              return $.processTemplateToText(
-                buttonColTemplate, {
+          "aTargets": ["description"],
+          "sWidth": "50%",
+        }, {
+          "aTargets": ["publisher"],
+          "sWidth": "20%",
+          "sClass": "publisher",
+        }, {
+          "aTargets": ["price", "reduced", "previews", "buttoncol"],
+          "sWidth": "5%",
+        }, {
+          "aTargets": ["price", "reduced", "buttoncol"],
+          "bSortable": false,
+        }, {
+          "aTargets": ["price"],
+          "fnRender": function(oObj) {
+            return "&pound;" + oObj.aData[2];
+          },
+        }, {
+          "aTargets": ["reduced"],
+          "fnRender": function(oObj) {
+            return (oObj.aData[3] !== "" ? "&pound;" + oObj.aData[3] : "");
+          },
+        }, {
+          "aTargets": ["buttoncol"],
+          "fnRender": function(oObj) {
+            return $.processTemplateToText(
+              buttonColTemplate, {
                 rowId: oObj.iDataRow,
                 previewsId: oObj.aData[0]
               });
-            },
-            "sClass": "buttoncol",
-          }, {
-            "aTargets": ["previews"],
-            "mRender": function(data, type, full) {
-              var id = full[0].slice(-4);
-              return $.processTemplateToText(
-                previewsLinkTemplate, {
+          },
+          "sClass": "buttoncol",
+        }, {
+          "aTargets": ["previews"],
+          "mRender": function(data, type, full) {
+            var id = full[0].slice(-4);
+            return $.processTemplateToText(
+              previewsLinkTemplate, {
                 displayText: full[0],
                 itemID: month + id,
               });
-            },
           },
-        ],
+        }, ],
 
       });
     },
@@ -164,7 +163,7 @@ function csv2datatable(sURL) {
 }
 
 /**
- * This isn't anything to do with calculate much of anything 
+ * This isn't anything to do with calculate much of anything
  * any more and should be renamed.
  */
 
@@ -245,7 +244,7 @@ function calculateOrder() {
       calculateTotals();
 
       /**
-       * This is some funkery that swaps classes around so 
+       * This is some funkery that swaps classes around so
        * that items that have been deleted from the order
        * are no longer selected.
        */
