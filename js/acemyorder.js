@@ -9,6 +9,10 @@ var order = new CustomerOrder();
 
 function issueToMonth(issueNumber) {
   // Not overly pretty, but it works.
+  // Ace have brought themselves in line with Previews numbering. I'll 
+  // work out a nicer way of doing this another time.
+  issueNumber += 162;
+
   var months = {
     "0": "MAR",
     "1": "APR",
