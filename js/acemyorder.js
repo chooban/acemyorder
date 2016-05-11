@@ -52,7 +52,8 @@ function issueToMonth(issueString) {
 function csv2datatable(sURL) {
 
   $.ajax({
-    url: "csvfilter.php",
+    url: "http://api:8100/latest",
+    crossDomain: true,
     scriptCharset: "UTF-8",
     type: "GET",
     dataType: "json",
