@@ -9,7 +9,7 @@ var order = new CustomerOrder();
 
 function issueToMonth(issueString) {
   // Not overly pretty, but it works.
-  // Ace have brought themselves in line with Previews numbering. I'll 
+  // Ace have brought themselves in line with Previews numbering. I'll
   // work out a nicer way of doing this another time.
   var issueNumber = +issueString + 162;
 
@@ -38,7 +38,7 @@ function issueToMonth(issueString) {
   var currentMonth = date.getMonth();
   var currentYear = ('' + date.getFullYear()).slice(-2);
 
-  // If it's less than the current month then we must have rolled over 
+  // If it's less than the current month then we must have rolled over
   // into the next year. Really, I should work out a better way of mapping
   // the issue number to a year because really, how hard can that be once
   // I know the epoch of Previews?
@@ -52,7 +52,7 @@ function issueToMonth(issueString) {
 function csv2datatable(sURL) {
 
   $.ajax({
-    url: "http://api:8100/latest",
+    url: "/api/latest",
     crossDomain: true,
     scriptCharset: "UTF-8",
     type: "GET",
