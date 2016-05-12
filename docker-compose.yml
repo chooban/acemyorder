@@ -9,7 +9,7 @@ services:
     volumes_from:
       - ace_data:ro
     ports:
-      - 8100:8100
+      - 8100
     environment:
       - NODE_ENV=production
       - LOG_LEVEL=debug
