@@ -1,12 +1,6 @@
 // There's got to be a better way than a global variable.
 var order = new CustomerOrder();
 
-/**
- * This takes the Previews issue number we're dealing with
- * and turns it into a string containing the month and year.
- * e.g. 465 is DEC13, 466 is JAN14, and so on.
- */
-
 function issueToMonth(issueNumber) {
   var months = [
     'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'
@@ -21,7 +15,6 @@ function csv2datatable(sURL) {
 
   $.ajax({
     url: "/api/previews/latest",
-    crossDomain: true,
     scriptCharset: "UTF-8",
     type: "GET",
     dataType: "json",
@@ -33,14 +26,6 @@ function csv2datatable(sURL) {
       // Set the "Now displaying..." text
       $('#nowdisplaying').text("Displaying " + previewsIssue);
       $('#directlink').html("<a href=\"csv/" + previewsIssue + ".csv\">Direct link to csv</a>");
-      var csvdata = jQuery.csv()(data.contents);
-
-      // The first row's not useful as it's the header row
-      csvdata.pop();
-
-      var row;
-      var was;
-      var match;
 
       var month = issueToMonth(+previewsIssue.slice(-3));
 
@@ -48,38 +33,19 @@ function csv2datatable(sURL) {
       var previewsLinkTemplate = $.createTemplate('<a target="new" href="http://www.previewsworld.com/Catalog/{$T.itemID}">{$T.displayText}</a>');
       //var previewsLinkTemplate = $.createTemplate('{$T.displayText}');
 
-      for (var i = 0; i < csvdata.length; i++) {
-        row = [];
-
-        // Previews code
-        // Title
-        // Price
-        row[0] = csvdata[i][0];
-        row[1] = csvdata[i][1];
-        row[2] = csvdata[i][3] !== null ? parseFloat(csvdata[i][3]) : "";
-
-        // Reduced from
-        was = csvdata[i][5];
-        if (was.length > 0) {
-          match = /(\d+(\.\d\d)?)/.exec(was);
-          row[3] = match[1];
-        }
-        else {
-          row[3] = "";
-        }
-
-        // Publisher
-        row[4] = csvdata[i][csvdata[i].length-1].toLowerCase();
-
-        // What will eventually be the button
-        row[5] = "";
-
-        // Now overwrite the row in the array
-        csvdata[i] = row;
-      }
+      var tableData = data.contents.map(function(lineItem) {
+        return [
+          lineItem.previewsCode,
+          lineItem.title,
+          lineItem.price,
+          lineItem.reducedFrom ? parseFloat(lineItem.reducedFrom) : '',
+          lineItem.publisher.toLowerCase(),
+          ''
+        ];
+      });
 
       $("table#datatable").dataTable({
-        "aaData": csvdata,
+        "aaData": tableData,
         "iDisplayLength": 30,
         "bAutoWidth": false,
         "bDestroy": true,
@@ -104,7 +70,7 @@ function csv2datatable(sURL) {
         }, {
           "aTargets": ["reduced"],
           "fnRender": function(oObj) {
-            return (oObj.aData[3] !== "" ? "&pound;" + oObj.aData[3] : "");
+            return (oObj.aData[3] ? "&pound;" + oObj.aData[3] : "");
           },
         }, {
           "aTargets": ["buttoncol"],

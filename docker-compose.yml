@@ -3,7 +3,7 @@ services:
   ace_data:
     image: chooban/ace-data-container:latest
   api:
-    image: chooban/ace-previews-api
+    image: chooban/ace-previews-api:latest
     depends_on:
       - ace_data
     volumes_from:
@@ -13,17 +13,17 @@ services:
     environment:
       - NODE_ENV=production
       - LOG_LEVEL=debug
-  web:
+  site:
     build: .
-  nginx: 
+  web: 
     build:
       context: ./nginx
       dockerfile: Dockerfile
     depends_on:
-      - web
+      - site
       - api
     volumes_from:
-      - web
+      - site
     ports:
       - 80:80
 
