@@ -2,7 +2,7 @@ version: '2'
 services:
   ace_data:
     image: chooban/ace-data-container:latest
-  api:
+  previewsapi:
     image: chooban/ace-previews-api:latest
     depends_on:
       - ace_data
@@ -13,17 +13,14 @@ services:
     environment:
       - NODE_ENV=production
       - LOG_LEVEL=debug
-  site:
-    build: .
-  web: 
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
+  web:
+    image: chooban/ace-nginx:latest
     depends_on:
       - site
-      - api
+      - previewsapi
     volumes_from:
       - site
     ports:
       - 80:80
-
+  site:
+    build: .
