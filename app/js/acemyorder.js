@@ -7,46 +7,14 @@ var order = new CustomerOrder();
  * e.g. 465 is DEC13, 466 is JAN14, and so on.
  */
 
-function issueToMonth(issueString) {
-  // Not overly pretty, but it works.
-  // Ace have brought themselves in line with Previews numbering. I'll
-  // work out a nicer way of doing this another time.
-  var issueNumber = +issueString + 162;
+function issueToMonth(issueNumber) {
+  var months = [
+    'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'
+  ];
+  var epoch = new Date(1988, 8, 1);
+  epoch.setMonth(epoch.getMonth() + issueNumber);
 
-  var months = {
-    "0": "MAR",
-    "1": "APR",
-    "2": "MAY",
-    "3": "JUN",
-    "4": "JUL",
-    "5": "AUG",
-    "6": "SEP",
-    "7": "OCT",
-    "8": "NOV",
-    "9": "DEC",
-    "10": "JAN",
-    "11": "FEB",
-  };
-
-  // I'm not sure if this is necessary, but I'll deliberately
-  // coerce to a string anyway.
-  var month = months['' + (issueNumber % 12)];
-
-  // Now to work out the year.
-  var date = new Date();
-
-  var currentMonth = date.getMonth();
-  var currentYear = ('' + date.getFullYear()).slice(-2);
-
-  // If it's less than the current month then we must have rolled over
-  // into the next year. Really, I should work out a better way of mapping
-  // the issue number to a year because really, how hard can that be once
-  // I know the epoch of Previews?
-  if (((parseInt(issueNumber, 10) + 2) % 12) < currentMonth) {
-    currentYear++;
-  }
-
-  return month + currentYear;
+  return months[epoch.getMonth()] + (epoch.getFullYear() - 2000);
 }
 
 function csv2datatable(sURL) {
@@ -74,7 +42,7 @@ function csv2datatable(sURL) {
       var was;
       var match;
 
-      var month = issueToMonth(previewsIssue.slice(-3));
+      var month = issueToMonth(+previewsIssue.slice(-3));
 
       var buttonColTemplate = $.createTemplate('<input type="checkbox" id="row{$T.rowId}" value="previews_{$T.previewsId}" class="addtoorder"/>');
       var previewsLinkTemplate = $.createTemplate('<a target="new" href="http://www.previewsworld.com/Catalog/{$T.itemID}">{$T.displayText}</a>');

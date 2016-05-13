@@ -1,7 +1,7 @@
 version: '2'
 services:
   ace_data:
-    image: chooban/ace-data-container
+    image: chooban/ace-data-container:latest
   api:
     image: chooban/ace-previews-api
     depends_on:
