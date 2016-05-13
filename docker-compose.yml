@@ -21,6 +21,7 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - web
+      - api
     volumes_from:
       - web
     ports:
