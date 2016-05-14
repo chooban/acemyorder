@@ -35,6 +35,7 @@ function csv2datatable(sURL) {
       $("table#datatable").dataTable({
         data: data.contents,
         destroy: true,
+        pagingType: 'simple',
         columns: [
           { data: "previewsCode",
             title: "Previews Code",
