@@ -31,69 +31,69 @@ function csv2datatable(sURL) {
 
       var buttonColTemplate = $.createTemplate('<input type="checkbox" id="row{$T.rowId}" value="previews_{$T.previewsId}" class="addtoorder"/>');
       var previewsLinkTemplate = $.createTemplate('<a target="new" href="http://www.previewsworld.com/Catalog/{$T.itemID}">{$T.displayText}</a>');
-      //var previewsLinkTemplate = $.createTemplate('{$T.displayText}');
-
-      var tableData = data.contents.map(function(lineItem) {
-        return [
-          lineItem.previewsCode,
-          lineItem.title,
-          lineItem.price,
-          lineItem.reducedFrom ? parseFloat(lineItem.reducedFrom) : '',
-          lineItem.publisher.toLowerCase(),
-          ''
-        ];
-      });
 
       $("table#datatable").dataTable({
-        "aaData": tableData,
-        "iDisplayLength": 30,
-        "bAutoWidth": false,
-        "bDestroy": true,
-        "aoColumnDefs": [{
-          "aTargets": ["description"],
-          "sWidth": "50%",
-        }, {
-          "aTargets": ["publisher"],
-          "sWidth": "20%",
-          "sClass": "publisher",
-        }, {
-          "aTargets": ["price", "reduced", "previews", "buttoncol"],
-          "sWidth": "5%",
-        }, {
-          "aTargets": ["price", "reduced", "buttoncol"],
-          "bSortable": false,
-        }, {
-          "aTargets": ["price"],
-          "fnRender": function(oObj) {
-            return "&pound;" + oObj.aData[2];
-          },
-        }, {
-          "aTargets": ["reduced"],
-          "fnRender": function(oObj) {
-            return (oObj.aData[3] ? "&pound;" + oObj.aData[3] : "");
-          },
-        }, {
-          "aTargets": ["buttoncol"],
-          "fnRender": function(oObj) {
-            return $.processTemplateToText(
-              buttonColTemplate, {
-                rowId: oObj.iDataRow,
-                previewsId: oObj.aData[0]
-              });
-          },
-          "sClass": "buttoncol",
-        }, {
-          "aTargets": ["previews"],
-          "mRender": function(data, type, full) {
-            var id = full[0].slice(-4);
+        data: data.contents,
+        columns: [
+          { data: "previewsCode",
+            title: "Previews Code",
+            width: "5%",
+            render: function(data) {
+            var id = data.slice(-4);
             return $.processTemplateToText(
               previewsLinkTemplate, {
-                displayText: full[0],
+                displayText: data,
                 itemID: month + id,
               });
+            }
           },
-        }, ],
-
+          { data: "title",
+            title: "Description",
+            width: "50%"
+          },
+          { data: "price",
+            title: "Price",
+            width: "5%",
+            orderable: false,
+            searchable: false,
+            render: function(d) {
+              return '&pound;' + d;
+            }
+          },
+          { data: "reducedFrom",
+            title: "Was",
+            width: "5%",
+            orderable: false,
+            searchable: false,
+            render: function(d) {
+              return d ? "&pound;" + d : null;
+            }
+          },
+          { data: "publisher",
+            title: "Publisher",
+            className: "publisher",
+            render: function(d) {
+              return d.toLowerCase();
+            }
+          },
+          {
+            title: "Include",
+            className: "buttoncol",
+            width: "5%",
+            orderable: false,
+            searchable: false,
+            render: function(data, type, row, meta) {
+              return $.processTemplateToText(
+                buttonColTemplate, {
+                  rowId: meta.row,
+                  previewsId: row.previewsCode
+                }
+              );
+            }
+          }
+        ],
+        lengthChange: false,
+        pageLength: 30
       });
     },
     error: function(jqXHR, textStatus, errorThrown) {
