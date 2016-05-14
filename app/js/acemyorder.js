@@ -31,69 +31,71 @@ function csv2datatable(sURL) {
 
       var buttonColTemplate = $.createTemplate('<input type="checkbox" id="row{$T.rowId}" value="previews_{$T.previewsId}" class="addtoorder"/>');
       var previewsLinkTemplate = $.createTemplate('<a target="new" href="http://www.previewsworld.com/Catalog/{$T.itemID}">{$T.displayText}</a>');
-      //var previewsLinkTemplate = $.createTemplate('{$T.displayText}');
-
-      var tableData = data.contents.map(function(lineItem) {
-        return [
-          lineItem.previewsCode,
-          lineItem.title,
-          lineItem.price,
-          lineItem.reducedFrom ? parseFloat(lineItem.reducedFrom) : '',
-          lineItem.publisher.toLowerCase(),
-          ''
-        ];
-      });
 
       $("table#datatable").dataTable({
-        "aaData": tableData,
-        "iDisplayLength": 30,
-        "bAutoWidth": false,
-        "bDestroy": true,
-        "aoColumnDefs": [{
-          "aTargets": ["description"],
-          "sWidth": "50%",
-        }, {
-          "aTargets": ["publisher"],
-          "sWidth": "20%",
-          "sClass": "publisher",
-        }, {
-          "aTargets": ["price", "reduced", "previews", "buttoncol"],
-          "sWidth": "5%",
-        }, {
-          "aTargets": ["price", "reduced", "buttoncol"],
-          "bSortable": false,
-        }, {
-          "aTargets": ["price"],
-          "fnRender": function(oObj) {
-            return "&pound;" + oObj.aData[2];
-          },
-        }, {
-          "aTargets": ["reduced"],
-          "fnRender": function(oObj) {
-            return (oObj.aData[3] ? "&pound;" + oObj.aData[3] : "");
-          },
-        }, {
-          "aTargets": ["buttoncol"],
-          "fnRender": function(oObj) {
-            return $.processTemplateToText(
-              buttonColTemplate, {
-                rowId: oObj.iDataRow,
-                previewsId: oObj.aData[0]
-              });
-          },
-          "sClass": "buttoncol",
-        }, {
-          "aTargets": ["previews"],
-          "mRender": function(data, type, full) {
-            var id = full[0].slice(-4);
+        data: data.contents,
+        destroy: true,
+        pagingType: 'simple',
+        columns: [
+          { data: "previewsCode",
+            title: "Previews Code",
+            width: "5%",
+            render: function(data) {
+            var id = data.slice(-4);
             return $.processTemplateToText(
               previewsLinkTemplate, {
-                displayText: full[0],
+                displayText: data,
                 itemID: month + id,
               });
+            }
           },
-        }, ],
-
+          { data: "title",
+            title: "Description",
+            width: "50%"
+          },
+          { data: "price",
+            title: "Price",
+            width: "5%",
+            orderable: false,
+            searchable: false,
+            render: function(d) {
+              return '&pound;' + d;
+            }
+          },
+          { data: "reducedFrom",
+            title: "Was",
+            width: "5%",
+            orderable: false,
+            searchable: false,
+            render: function(d) {
+              return d ? "&pound;" + d : null;
+            }
+          },
+          { data: "publisher",
+            title: "Publisher",
+            className: "publisher",
+            render: function(d) {
+              return d.toLowerCase();
+            }
+          },
+          {
+            title: "Include",
+            className: "buttoncol",
+            width: "5%",
+            orderable: false,
+            searchable: false,
+            render: function(data, type, row, meta) {
+              return $.processTemplateToText(
+                buttonColTemplate, {
+                  rowId: meta.row,
+                  previewsId: row.previewsCode
+                }
+              );
+            }
+          }
+        ],
+        lengthChange: false,
+        pageLength: 30
       });
     },
     error: function(jqXHR, textStatus, errorThrown) {
@@ -168,7 +170,7 @@ function calculateOrder() {
     completeOrder.line_items = order.lineItems;
     completeOrder.order_total = order.getTotal();
 
-    var encoded = $.toJSON(completeOrder);
+    var encoded = JSON.stringify(completeOrder);
 
     // Memory fails me as to why I did it like this rather than an
     // asynchronous call
@@ -202,20 +204,20 @@ $(document).ready(function() {
   csv2datatable();
 
   $('table#datatable').click(function(event) {
-    var table = $("table#datatable").dataTable({
-      "bRetrieve": true,
-    });
+    var table = $("table#datatable").dataTable().api();
 
     if ($(event.target).is('input.addtoorder')) {
-      // We're on the case
       event.stopPropagation();
 
-      var aData = table.fnGetData(/row(\d+)/.exec(event.target.id)[1]);
+      var row = table.rows(/row(\d+)/.exec(event.target.id)[1]).data();
+      var data = row[0];
 
-      // Add the row to the order. The id is "row(number)"
-      var price = parseFloat(/&pound;(.*)/.exec(aData[2])[1]);
-
-      var lineItem = new LineItem(aData[0], aData[1], price, aData[4]);
+      var lineItem = new LineItem(
+        data.previewsCode,
+        data.title,
+        parseFloat(data.price),
+        data.publisher
+      );
       order.addToOrder(lineItem);
 
       // Check the checkbox
@@ -226,8 +228,9 @@ $(document).ready(function() {
     }
     else if ($(event.target).is('input.deletefromorder')) {
       event.stopPropagation();
-      var aData = table.fnGetData(/row(\d+)/.exec(event.target.id)[1]);
-      order.deleteFromOrder(aData[0]);
+      var row = table.rows(/row(\d+)/.exec(event.target.id)[1]).data();
+      var data = row[0];
+      order.deleteFromOrder(data.previewsCode);
 
       // Change the class so that we can toggle orders.
       var elem = $("#" + event.target.id);
@@ -239,9 +242,9 @@ $(document).ready(function() {
   });
 
   $('#dialogcontents').dialog({
-    "modal": true,
-    "autoOpen": false,
-    "minWidth": 800,
+    modal: true,
+    autoOpen: false,
+    minWidth: 800,
     beforeClose: function(event, ui) {
       // On close, update quantities and comments
       $('tr.orderrow').each(function(i, tr) {
@@ -257,8 +260,8 @@ $(document).ready(function() {
   });
 
   $('#postsubmitmessage').dialog({
-    "modal": true,
-    "autoOpen": false,
+    modal: true,
+    autoOpen: false,
   });
 
   $('#showorder').click(function(event) {
