@@ -34,6 +34,7 @@ function csv2datatable(sURL) {
 
       $("table#datatable").dataTable({
         data: data.contents,
+        destroy: true,
         columns: [
           { data: "previewsCode",
             title: "Previews Code",
@@ -168,7 +169,7 @@ function calculateOrder() {
     completeOrder.line_items = order.lineItems;
     completeOrder.order_total = order.getTotal();
 
-    var encoded = $.toJSON(completeOrder);
+    var encoded = JSON.stringify(completeOrder);
 
     // Memory fails me as to why I did it like this rather than an
     // asynchronous call
@@ -202,20 +203,20 @@ $(document).ready(function() {
   csv2datatable();
 
   $('table#datatable').click(function(event) {
-    var table = $("table#datatable").dataTable({
-      "bRetrieve": true,
-    });
+    var table = $("table#datatable").dataTable().api();
 
     if ($(event.target).is('input.addtoorder')) {
-      // We're on the case
       event.stopPropagation();
 
-      var aData = table.fnGetData(/row(\d+)/.exec(event.target.id)[1]);
+      var row = table.rows(/row(\d+)/.exec(event.target.id)[1]).data();
+      var data = row[0];
 
-      // Add the row to the order. The id is "row(number)"
-      var price = parseFloat(/&pound;(.*)/.exec(aData[2])[1]);
-
-      var lineItem = new LineItem(aData[0], aData[1], price, aData[4]);
+      var lineItem = new LineItem(
+        data.previewsCode,
+        data.title,
+        parseFloat(data.price),
+        data.publisher
+      );
       order.addToOrder(lineItem);
 
       // Check the checkbox
@@ -226,8 +227,9 @@ $(document).ready(function() {
     }
     else if ($(event.target).is('input.deletefromorder')) {
       event.stopPropagation();
-      var aData = table.fnGetData(/row(\d+)/.exec(event.target.id)[1]);
-      order.deleteFromOrder(aData[0]);
+      var row = table.rows(/row(\d+)/.exec(event.target.id)[1]).data();
+      var data = row[0];
+      order.deleteFromOrder(data.previewsCode);
 
       // Change the class so that we can toggle orders.
       var elem = $("#" + event.target.id);
@@ -239,9 +241,9 @@ $(document).ready(function() {
   });
 
   $('#dialogcontents').dialog({
-    "modal": true,
-    "autoOpen": false,
-    "minWidth": 800,
+    modal: true,
+    autoOpen: false,
+    minWidth: 800,
     beforeClose: function(event, ui) {
       // On close, update quantities and comments
       $('tr.orderrow').each(function(i, tr) {
@@ -257,8 +259,8 @@ $(document).ready(function() {
   });
 
   $('#postsubmitmessage').dialog({
-    "modal": true,
-    "autoOpen": false,
+    modal: true,
+    autoOpen: false,
   });
 
   $('#showorder').click(function(event) {
