@@ -159,22 +159,12 @@ function calculateOrder() {
       order.setComment(previewsId, '"' + $(inputs[1]).val() + '"');
     });
 
-    // Add the callback
-    $('#exportorder').submit(function() {
-      $('#dialogcontents').dialog("close");
-      $('#postsubmitmessage').dialog("open");
-    });
-
     var completeOrder = {};
     completeOrder.issue = order.issue;
     completeOrder.line_items = order.lineItems;
     completeOrder.order_total = order.getTotal();
 
-    var encoded = JSON.stringify(completeOrder);
-
-    // Memory fails me as to why I did it like this rather than an
-    // asynchronous call
-    $('#encodeddata').val(Base64.encode(encoded));
+    $('#encodeddata').val(JSON.stringify(completeOrder));
     $('#exportorder').submit();
   });
 
