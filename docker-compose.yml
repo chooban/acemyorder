@@ -8,15 +8,11 @@ services:
       - ace_data
     volumes_from:
       - ace_data:ro
-    ports:
-      - 8100
     environment:
       - NODE_ENV=production
       - LOG_LEVEL=debug
   ordersapi:
     image: chooban/ace-orders-api:latest
-    ports:
-      - 8101
     environment:
       - NODE_ENV=production
       - LOG_LEVEL=debug
@@ -31,3 +27,5 @@ services:
       - 80:80
   site:
     build: .
+    volumes:
+      - ./app:/var/www/acemyorder/public_html/
