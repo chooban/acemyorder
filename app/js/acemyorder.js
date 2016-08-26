@@ -25,7 +25,7 @@ function csv2datatable(sURL) {
 
       // Set the "Now displaying..." text
       $('#nowdisplaying').text("Displaying " + previewsIssue);
-      $('#directlink').html("<a href=\"csv/" + previewsIssue + ".csv\">Direct link to csv</a>");
+      $('#directlink').html("<a href=\"/api/previews/latest\">Direct link to csv</a>");
 
       var month = issueToMonth(+previewsIssue.slice(-3));
 
