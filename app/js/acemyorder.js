@@ -14,7 +14,7 @@ function issueToMonth(issueNumber) {
 function csv2datatable(sURL) {
 
   $.ajax({
-    url: "/api/previews/latest",
+    url: "/api/previews/latest.json",
     scriptCharset: "UTF-8",
     type: "GET",
     dataType: "json",
@@ -25,7 +25,7 @@ function csv2datatable(sURL) {
 
       // Set the "Now displaying..." text
       $('#nowdisplaying').text("Displaying " + previewsIssue);
-      $('#directlink').html("<a href=\"csv/" + previewsIssue + ".csv\">Direct link to csv</a>");
+      $('#directlink').html("<a href=\"/api/previews/latest.csv\">Direct link to csv</a>");
 
       var month = issueToMonth(+previewsIssue.slice(-3));
 
