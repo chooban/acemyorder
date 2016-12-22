@@ -1,13 +1,9 @@
 version: '2'
 services:
-  ace_data:
-    image: chooban/ace-data-container:latest
   previewsapi:
     image: chooban/ace-previews-api:latest
-    depends_on:
-      - ace_data
-    volumes_from:
-      - ace_data:ro
+    volumes:
+      - './acedata/:/data:ro'
     environment:
       - NODE_ENV=production
       - LOG_LEVEL=debug
@@ -16,11 +12,14 @@ services:
     environment:
       - NODE_ENV=production
       - LOG_LEVEL=debug
+  webhooks:
+    image: chooban/ace-volume-updater
   web:
     image: chooban/ace-nginx:latest
     depends_on:
       - site
       - previewsapi
+      - webhooks
     volumes_from:
       - site
     ports:
