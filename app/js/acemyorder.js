@@ -1,58 +1,20 @@
 // There's got to be a better way than a global variable.
 var order = new CustomerOrder();
 
-/**
- * This takes the Previews issue number we're dealing with
- * and turns it into a string containing the month and year.
- * e.g. 465 is DEC13, 466 is JAN14, and so on.
- */
+function issueToMonth(issueNumber) {
+  var months = [
+    'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'
+  ];
+  var epoch = new Date(1988, 8, 1);
+  epoch.setMonth(epoch.getMonth() + issueNumber);
 
-function issueToMonth(issueString) {
-  // Not overly pretty, but it works.
-  // Ace have brought themselves in line with Previews numbering. I'll 
-  // work out a nicer way of doing this another time.
-  var issueNumber = +issueString + 162;
-
-  var months = {
-    "0": "MAR",
-    "1": "APR",
-    "2": "MAY",
-    "3": "JUN",
-    "4": "JUL",
-    "5": "AUG",
-    "6": "SEP",
-    "7": "OCT",
-    "8": "NOV",
-    "9": "DEC",
-    "10": "JAN",
-    "11": "FEB",
-  };
-
-  // I'm not sure if this is necessary, but I'll deliberately
-  // coerce to a string anyway.
-  var month = months['' + (issueNumber % 12)];
-
-  // Now to work out the year.
-  var date = new Date();
-
-  var currentMonth = date.getMonth();
-  var currentYear = ('' + date.getFullYear()).slice(-2);
-
-  // If it's less than the current month then we must have rolled over 
-  // into the next year. Really, I should work out a better way of mapping
-  // the issue number to a year because really, how hard can that be once
-  // I know the epoch of Previews?
-  if (((parseInt(issueNumber, 10) + 2) % 12) < currentMonth) {
-    currentYear++;
-  }
-
-  return month + currentYear;
+  return months[epoch.getMonth()] + (epoch.getFullYear() - 2000);
 }
 
 function csv2datatable(sURL) {
 
   $.ajax({
-    url: "csvfilter.php",
+    url: "/api/previews/latest.json",
     scriptCharset: "UTF-8",
     type: "GET",
     dataType: "json",
@@ -63,102 +25,77 @@ function csv2datatable(sURL) {
 
       // Set the "Now displaying..." text
       $('#nowdisplaying').text("Displaying " + previewsIssue);
-      $('#directlink').html("<a href=\"csv/" + previewsIssue + ".csv\">Direct link to csv</a>");
-      var csvdata = jQuery.csv()(data.contents);
+      $('#directlink').html("<a href=\"/api/previews/latest.csv\">Direct link to csv</a>");
 
-      // The first row's not useful as it's the header row
-      csvdata.pop();
-
-      var row;
-      var was;
-      var match;
-
-      var month = issueToMonth(previewsIssue.slice(-3));
+      var month = issueToMonth(+previewsIssue.slice(-3));
 
       var buttonColTemplate = $.createTemplate('<input type="checkbox" id="row{$T.rowId}" value="previews_{$T.previewsId}" class="addtoorder"/>');
       var previewsLinkTemplate = $.createTemplate('<a target="new" href="http://www.previewsworld.com/Catalog/{$T.itemID}">{$T.displayText}</a>');
-      //var previewsLinkTemplate = $.createTemplate('{$T.displayText}');
-
-      for (var i = 0; i < csvdata.length; i++) {
-        row = [];
-
-        // Previews code
-        // Title
-        // Price
-        row[0] = csvdata[i][0];
-        row[1] = csvdata[i][1];
-        row[2] = csvdata[i][3] !== null ? parseFloat(csvdata[i][3]) : "";
-
-        // Reduced from
-        was = csvdata[i][5];
-        if (was.length > 0) {
-          match = /(\d+(\.\d\d)?)/.exec(was);
-          row[3] = match[1];
-        }
-        else {
-          row[3] = "";
-        }
-
-        // Publisher
-        row[4] = csvdata[i][csvdata[i].length-1].toLowerCase();
-
-        // What will eventually be the button
-        row[5] = "";
-
-        // Now overwrite the row in the array
-        csvdata[i] = row;
-      }
 
       $("table#datatable").dataTable({
-        "aaData": csvdata,
-        "iDisplayLength": 30,
-        "bAutoWidth": false,
-        "bDestroy": true,
-        "aoColumnDefs": [{
-          "aTargets": ["description"],
-          "sWidth": "50%",
-        }, {
-          "aTargets": ["publisher"],
-          "sWidth": "20%",
-          "sClass": "publisher",
-        }, {
-          "aTargets": ["price", "reduced", "previews", "buttoncol"],
-          "sWidth": "5%",
-        }, {
-          "aTargets": ["price", "reduced", "buttoncol"],
-          "bSortable": false,
-        }, {
-          "aTargets": ["price"],
-          "fnRender": function(oObj) {
-            return "&pound;" + oObj.aData[2];
-          },
-        }, {
-          "aTargets": ["reduced"],
-          "fnRender": function(oObj) {
-            return (oObj.aData[3] !== "" ? "&pound;" + oObj.aData[3] : "");
-          },
-        }, {
-          "aTargets": ["buttoncol"],
-          "fnRender": function(oObj) {
-            return $.processTemplateToText(
-              buttonColTemplate, {
-                rowId: oObj.iDataRow,
-                previewsId: oObj.aData[0]
-              });
-          },
-          "sClass": "buttoncol",
-        }, {
-          "aTargets": ["previews"],
-          "mRender": function(data, type, full) {
-            var id = full[0].slice(-4);
+        data: data.contents,
+        destroy: true,
+        pagingType: 'simple',
+        columns: [
+          { data: "previewsCode",
+            title: "Previews Code",
+            width: "5%",
+            render: function(data) {
+            var id = data.slice(-4);
             return $.processTemplateToText(
               previewsLinkTemplate, {
-                displayText: full[0],
+                displayText: data,
                 itemID: month + id,
               });
+            }
           },
-        }, ],
-
+          { data: "title",
+            title: "Description",
+            width: "50%"
+          },
+          { data: "price",
+            title: "Price",
+            width: "5%",
+            orderable: false,
+            searchable: false,
+            render: function(d) {
+              return '&pound;' + d;
+            }
+          },
+          { data: "reducedFrom",
+            title: "Was",
+            width: "5%",
+            orderable: false,
+            searchable: false,
+            render: function(d) {
+              return d ? "&pound;" + d : null;
+            }
+          },
+          { data: "publisher",
+            title: "Publisher",
+            className: "publisher",
+            render: function(d) {
+              return d.toLowerCase();
+            }
+          },
+          {
+            title: "Include",
+            className: "buttoncol",
+            width: "5%",
+            orderable: false,
+            searchable: false,
+            render: function(data, type, row, meta) {
+              return $.processTemplateToText(
+                buttonColTemplate, {
+                  rowId: meta.row,
+                  previewsId: row.previewsCode
+                }
+              );
+            }
+          }
+        ],
+        lengthChange: false,
+        pageLength: 30
       });
     },
     error: function(jqXHR, textStatus, errorThrown) {
@@ -222,22 +159,12 @@ function calculateOrder() {
       order.setComment(previewsId, '"' + $(inputs[1]).val() + '"');
     });
 
-    // Add the callback
-    $('#exportorder').submit(function() {
-      $('#dialogcontents').dialog("close");
-      $('#postsubmitmessage').dialog("open");
-    });
-
     var completeOrder = {};
     completeOrder.issue = order.issue;
     completeOrder.line_items = order.lineItems;
     completeOrder.order_total = order.getTotal();
 
-    var encoded = $.toJSON(completeOrder);
-
-    // Memory fails me as to why I did it like this rather than an
-    // asynchronous call
-    $('#encodeddata').val(Base64.encode(encoded));
+    $('#encodeddata').val(JSON.stringify(completeOrder));
     $('#exportorder').submit();
   });
 
@@ -267,20 +194,20 @@ $(document).ready(function() {
   csv2datatable();
 
   $('table#datatable').click(function(event) {
-    var table = $("table#datatable").dataTable({
-      "bRetrieve": true,
-    });
+    var table = $("table#datatable").dataTable().api();
 
     if ($(event.target).is('input.addtoorder')) {
-      // We're on the case
       event.stopPropagation();
 
-      var aData = table.fnGetData(/row(\d+)/.exec(event.target.id)[1]);
+      var row = table.rows(/row(\d+)/.exec(event.target.id)[1]).data();
+      var data = row[0];
 
-      // Add the row to the order. The id is "row(number)"
-      var price = parseFloat(/&pound;(.*)/.exec(aData[2])[1]);
-
-      var lineItem = new LineItem(aData[0], aData[1], price, aData[4]);
+      var lineItem = new LineItem(
+        data.previewsCode,
+        data.title,
+        parseFloat(data.price),
+        data.publisher
+      );
       order.addToOrder(lineItem);
 
       // Check the checkbox
@@ -291,8 +218,9 @@ $(document).ready(function() {
     }
     else if ($(event.target).is('input.deletefromorder')) {
       event.stopPropagation();
-      var aData = table.fnGetData(/row(\d+)/.exec(event.target.id)[1]);
-      order.deleteFromOrder(aData[0]);
+      var row = table.rows(/row(\d+)/.exec(event.target.id)[1]).data();
+      var data = row[0];
+      order.deleteFromOrder(data.previewsCode);
 
       // Change the class so that we can toggle orders.
       var elem = $("#" + event.target.id);
@@ -304,9 +232,9 @@ $(document).ready(function() {
   });
 
   $('#dialogcontents').dialog({
-    "modal": true,
-    "autoOpen": false,
-    "minWidth": 800,
+    modal: true,
+    autoOpen: false,
+    minWidth: 800,
     beforeClose: function(event, ui) {
       // On close, update quantities and comments
       $('tr.orderrow').each(function(i, tr) {
@@ -322,8 +250,8 @@ $(document).ready(function() {
   });
 
   $('#postsubmitmessage').dialog({
-    "modal": true,
-    "autoOpen": false,
+    modal: true,
+    autoOpen: false,
   });
 
   $('#showorder').click(function(event) {

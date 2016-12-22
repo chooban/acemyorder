@@ -1,0 +1,30 @@
+version: '2'
+services:
+  previewsapi:
+    image: chooban/ace-previews-api:latest
+    volumes:
+      - './acedata/:/data:ro'
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=debug
+  ordersapi:
+    image: chooban/ace-orders-api:latest
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=debug
+  webhooks:
+    image: chooban/ace-volume-updater
+  web:
+    image: chooban/ace-nginx:latest
+    depends_on:
+      - site
+      - previewsapi
+      - webhooks
+    volumes_from:
+      - site
+    ports:
+      - 80:80
+  site:
+    build: .
+    volumes:
+      - ./app:/var/www/acemyorder/public_html/

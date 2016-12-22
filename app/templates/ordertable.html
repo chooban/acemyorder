@@ -12,7 +12,7 @@
 			<th>&nbsp;</th>
 		</tr>
 	</thead>
-	
+
 	<tbody id="orderbody">
 		{#foreach $T as row}
 			{#param name=total value=$P.total + ( ( $T.row.price * 100) * $T.row.quantity )}
@@ -27,7 +27,7 @@
 			<tr>
 		{#/for}
 	</tbody>
-	
+
 	<tfoot id="orderfoot">
 		<tr>
 			<td colspan="2">&nbsp;</td>
@@ -38,7 +38,7 @@
 	</tfoot>
 </table>
 
-<form id="exportorder" action="export.php" method="post" target="_blank">
+<form id="exportorder" action="/api/orders/export" method="post" target="_blank">
 	<input type="hidden" name="encodeddata" id="encodeddata" value=""/>
 	<input type="button" value="Submit" id="submitorder"/>
 </form>
